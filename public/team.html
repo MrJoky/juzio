@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f7f3ec">
+    <title>Team | Juze Theke</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="manifest" href="/manifest.json">
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="Juze Theke">
+        <span class="brand-mark">JT</span>
+        <span>Juze Theke</span>
+      </a>
+      <nav class="nav" aria-label="Bereiche">
+        <a href="/">Eingabe</a>
+        <a href="/team.html" aria-current="page">Team</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="page-section staff-band">
+        <div class="staff-shell">
+          <div class="section-heading">
+            <p class="eyebrow">Team</p>
+            <h1>Geschützter Bereich</h1>
+          </div>
+
+          <form id="loginForm" class="panel login-panel">
+            <label>
+              Passwort
+              <input name="password" type="password" autocomplete="current-password" required>
+            </label>
+            <button class="primary-button" type="submit">Anmelden</button>
+            <p id="loginStatus" class="status" role="status"></p>
+          </form>
+
+          <div id="staffApp" class="staff-app" hidden>
+            <div class="toolbar">
+              <div class="tabs" role="tablist" aria-label="Teamansicht">
+                <button class="tab is-active" data-tab="submissions" type="button">Liste</button>
+                <button class="tab" data-tab="cashier" type="button">Kasse</button>
+              </div>
+              <button id="logoutButton" class="ghost-button" type="button">Abmelden</button>
+            </div>
+
+            <section id="submissionsView" class="staff-view">
+              <div class="view-header">
+                <h2>Kundeneinträge</h2>
+                <button id="refreshSubmissions" class="ghost-button" type="button">Aktualisieren</button>
+              </div>
+              <div id="submissionsList" class="entry-list"></div>
+            </section>
+
+            <section id="cashierView" class="staff-view" hidden>
+              <div class="view-header">
+                <h2>Verkaufsliste</h2>
+                <div class="button-group">
+                  <button id="exportCashier" class="ghost-button" type="button">CSV Export</button>
+                  <button id="resetCashier" class="danger-button" type="button">Zähler resetten</button>
+                </div>
+              </div>
+
+              <div id="cashierList" class="cashier-list"></div>
+
+              <form id="offerForm" class="offer-form">
+                <input name="name" placeholder="Neues Angebot" required>
+                <input name="price" inputmode="decimal" placeholder="Preis, z.B. 2.50" required>
+                <button class="primary-button" type="submit">Hinzufügen</button>
+              </form>
+
+              <div class="total-row">
+                <span>Summe</span>
+                <strong id="cashierTotal">0,00 Euro</strong>
+              </div>
+            </section>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="/team.js" type="module"></script>
+  </body>
+</html>

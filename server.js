@@ -123,14 +123,14 @@ async function handleApi(req, res, url) {
     const body = await readJsonBody(req);
     const entry = {
       id: randomUUID(),
-      age: Math.max(0, Math.round(Number(body.age) || 0)),
+      ageGroup: cleanText(body.ageGroup, 20),
       gender: cleanText(body.gender, 80),
       note: cleanText(body.note, 1200),
       createdAt: new Date().toISOString()
     };
 
-    if (!entry.age || !entry.gender) {
-      sendJson(res, 400, { error: "Age and gender are required." });
+    if (!entry.ageGroup || !entry.gender) {
+      sendJson(res, 400, { error: "Age group and gender are required." });
       return;
     }
 

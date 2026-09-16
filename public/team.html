@@ -89,8 +89,13 @@
 
               <form id="statisticsForm" class="stats-form">
                 <label>
-                  Alter
-                  <input name="age" type="number" inputmode="numeric" min="1" max="120" required>
+                  Altersgruppe
+                  <select name="ageGroup" required>
+                    <option value="">Bitte wählen</option>
+                    <option value="12-15">12-15</option>
+                    <option value="16-18">16-18</option>
+                    <option value="18-27">18-27</option>
+                  </select>
                 </label>
                 <label>
                   Geschlecht

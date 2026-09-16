@@ -11,8 +11,15 @@ const exportCashier = document.querySelector("#exportCashier");
 const resetCashier = document.querySelector("#resetCashier");
 const submissionsView = document.querySelector("#submissionsView");
 const cashierView = document.querySelector("#cashierView");
+const statisticsView = document.querySelector("#statisticsView");
+const statisticsForm = document.querySelector("#statisticsForm");
+const statisticsStatus = document.querySelector("#statisticsStatus");
+const statisticsList = document.querySelector("#statisticsList");
+const refreshStatistics = document.querySelector("#refreshStatistics");
+const exportStatistics = document.querySelector("#exportStatistics");
 
 let cashier = { offers: [] };
+let statistics = [];
 
 loginForm.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -27,7 +34,7 @@ loginForm.addEventListener("submit", async (event) => {
     loginForm.hidden = true;
     staffApp.hidden = false;
     loginStatus.textContent = "";
-    await Promise.all([loadSubmissions(), loadCashier()]);
+    await Promise.all([loadSubmissions(), loadCashier(), loadStatistics()]);
   } else {
     loginStatus.textContent = response.error || "Anmeldung fehlgeschlagen.";
   }
@@ -46,10 +53,31 @@ document.querySelectorAll(".tab").forEach((button) => {
   button.addEventListener("click", () => {
     document.querySelectorAll(".tab").forEach((tab) => tab.classList.remove("is-active"));
     button.classList.add("is-active");
-    const showCashier = button.dataset.tab === "cashier";
-    submissionsView.hidden = showCashier;
-    cashierView.hidden = !showCashier;
+    submissionsView.hidden = button.dataset.tab !== "submissions";
+    cashierView.hidden = button.dataset.tab !== "cashier";
+    statisticsView.hidden = button.dataset.tab !== "statistics";
   });
+});
+
+refreshStatistics.addEventListener("click", loadStatistics);
+
+statisticsForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  statisticsStatus.textContent = "Speichere...";
+
+  const response = await api("/api/staff/statistics", {
+    method: "POST",
+    body: formJson(statisticsForm)
+  });
+
+  if (response.ok === false) {
+    statisticsStatus.textContent = response.error || "Speichern hat nicht geklappt.";
+    return;
+  }
+
+  statisticsForm.reset();
+  statisticsStatus.textContent = "Statistik gespeichert.";
+  await loadStatistics();
 });
 
 offerForm.addEventListener("submit", async (event) => {
@@ -82,6 +110,19 @@ exportCashier.addEventListener("click", () => {
   downloadCsv(`juze-theke-${new Date().toISOString().slice(0, 10)}.csv`, rows);
 });
 
+exportStatistics.addEventListener("click", () => {
+  const rows = [["Datum", "Alter", "Geschlecht", "Notiz"]];
+  statistics.forEach((entry) => {
+    rows.push([
+      formatDate(entry.createdAt),
+      entry.age,
+      entry.gender,
+      entry.note
+    ]);
+  });
+  downloadCsv(`juze-statistik-${new Date().toISOString().slice(0, 10)}.csv`, rows);
+});
+
 resetCashier.addEventListener("click", async () => {
   if (!confirm("Alle Verkaufszähler auf 0 setzen?")) return;
   cashier = await api("/api/staff/cashier/reset", { method: "POST" });
@@ -100,6 +141,12 @@ async function loadSubmissions() {
 async function loadCashier() {
   cashier = await api("/api/staff/cashier");
   renderCashier();
+}
+
+async function loadStatistics() {
+  const response = await api("/api/staff/statistics");
+  statistics = Array.isArray(response) ? response : [];
+  renderStatistics();
 }
 
 async function saveCashier() {
@@ -143,6 +190,22 @@ function renderCashier() {
       await saveCashier();
     });
   });
+}
+
+function renderStatistics() {
+  statisticsList.innerHTML = statistics.length
+    ? statistics.map(renderStatistic).join("")
+    : `<div class="entry-card"><strong>Noch keine Statistik-Einträge.</strong></div>`;
+}
+
+function renderStatistic(entry) {
+  return `
+    <article class="entry-card">
+      <strong>${escapeHtml(entry.age)} Jahre · ${escapeHtml(entry.gender)}</strong>
+      <span class="entry-meta">${formatDate(entry.createdAt)}</span>
+      ${entry.note ? `<p>${escapeHtml(entry.note)}</p>` : "<p>Keine Notiz.</p>"}
+    </article>
+  `;
 }
 
 function renderOffer(offer) {

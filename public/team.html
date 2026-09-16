@@ -42,6 +42,7 @@
               <div class="tabs" role="tablist" aria-label="Teamansicht">
                 <button class="tab is-active" data-tab="submissions" type="button">Liste</button>
                 <button class="tab" data-tab="cashier" type="button">Kasse</button>
+                <button class="tab" data-tab="statistics" type="button">Statistik</button>
               </div>
               <button id="logoutButton" class="ghost-button" type="button">Abmelden</button>
             </div>
@@ -75,6 +76,41 @@
                 <span>Summe</span>
                 <strong id="cashierTotal">0,00 Euro</strong>
               </div>
+            </section>
+
+            <section id="statisticsView" class="staff-view" hidden>
+              <div class="view-header">
+                <h2>Statistik</h2>
+                <div class="button-group">
+                  <button id="refreshStatistics" class="ghost-button" type="button">Aktualisieren</button>
+                  <button id="exportStatistics" class="ghost-button" type="button">CSV Export</button>
+                </div>
+              </div>
+
+              <form id="statisticsForm" class="stats-form">
+                <label>
+                  Alter
+                  <input name="age" type="number" inputmode="numeric" min="1" max="120" required>
+                </label>
+                <label>
+                  Geschlecht
+                  <select name="gender" required>
+                    <option value="">Bitte wählen</option>
+                    <option value="weiblich">weiblich</option>
+                    <option value="männlich">männlich</option>
+                    <option value="divers">divers</option>
+                    <option value="keine Angabe">keine Angabe</option>
+                  </select>
+                </label>
+                <label>
+                  Notiz
+                  <textarea name="note" rows="3" placeholder="Zusätzliche Notiz"></textarea>
+                </label>
+                <button class="primary-button" type="submit">Speichern</button>
+                <p id="statisticsStatus" class="status" role="status"></p>
+              </form>
+
+              <div id="statisticsList" class="entry-list"></div>
             </section>
           </div>
         </div>

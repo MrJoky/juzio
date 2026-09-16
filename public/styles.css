@@ -365,6 +365,18 @@ textarea:focus {
   margin-top: 16px;
 }
 
+.stats-form {
+  align-items: end;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(90px, 120px) minmax(160px, 220px) minmax(220px, 1fr) auto;
+  margin-top: 16px;
+  padding: 14px;
+}
+
 .total-row {
   border-top: 1px solid var(--line);
   font-size: 1.3rem;
@@ -389,7 +401,8 @@ textarea:focus {
   .section-grid,
   .login-row,
   .cashier-item,
-  .offer-form {
+  .offer-form,
+  .stats-form {
     grid-template-columns: 1fr;
   }
 

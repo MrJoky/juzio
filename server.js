@@ -10,6 +10,7 @@ const publicDir = path.join(__dirname, "public");
 const dataDir = path.join(__dirname, "data");
 const submissionsFile = path.join(dataDir, "submissions.json");
 const cashierFile = path.join(dataDir, "cashier.json");
+const statisticsFile = path.join(dataDir, "statistics.json");
 
 loadDotEnv();
 
@@ -113,6 +114,33 @@ async function handleApi(req, res, url) {
     return;
   }
 
+  if (req.method === "GET" && url.pathname === "/api/staff/statistics") {
+    sendJson(res, 200, await readJson(statisticsFile, []));
+    return;
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/staff/statistics") {
+    const body = await readJsonBody(req);
+    const entry = {
+      id: randomUUID(),
+      age: Math.max(0, Math.round(Number(body.age) || 0)),
+      gender: cleanText(body.gender, 80),
+      note: cleanText(body.note, 1200),
+      createdAt: new Date().toISOString()
+    };
+
+    if (!entry.age || !entry.gender) {
+      sendJson(res, 400, { error: "Age and gender are required." });
+      return;
+    }
+
+    const statistics = await readJson(statisticsFile, []);
+    statistics.unshift(entry);
+    await writeJson(statisticsFile, statistics);
+    sendJson(res, 201, entry);
+    return;
+  }
+
   if (req.method === "POST" && url.pathname === "/api/staff/cashier") {
     const body = await readJsonBody(req);
     const offers = Array.isArray(body.offers) ? body.offers : [];
@@ -187,6 +215,7 @@ async function ensureDataFiles() {
   await mkdir(dataDir, { recursive: true });
   await ensureJsonFile(submissionsFile, []);
   await ensureJsonFile(cashierFile, defaultCashier);
+  await ensureJsonFile(statisticsFile, []);
 }
 
 async function ensureJsonFile(file, fallback) {

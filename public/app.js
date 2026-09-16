@@ -38,7 +38,7 @@ customerForm.addEventListener("submit", async (event) => {
 
 loginForm.addEventListener("submit", async (event) => {
   event.preventDefault();
-  loginStatus.textContent = "Pruefe...";
+  loginStatus.textContent = "Prüfe...";
 
   const response = await api("/api/login", {
     method: "POST",
@@ -105,7 +105,7 @@ exportCashier.addEventListener("click", () => {
 });
 
 resetCashier.addEventListener("click", async () => {
-  if (!confirm("Alle Verkaufszaehler auf 0 setzen?")) return;
+  if (!confirm("Alle Verkaufszähler auf 0 setzen?")) return;
   cashier = await api("/api/staff/cashier/reset", { method: "POST" });
   renderCashier();
 });
@@ -116,7 +116,7 @@ async function loadSubmissions() {
 
   submissionsList.innerHTML = submissions.length
     ? submissions.map(renderSubmission).join("")
-    : `<div class="entry-card"><strong>Noch keine Eintraege.</strong></div>`;
+    : `<div class="entry-card"><strong>Noch keine Einträge.</strong></div>`;
 }
 
 async function loadCashier() {
@@ -133,13 +133,13 @@ async function saveCashier() {
 }
 
 function renderSubmission(entry) {
-  const guestText = entry.guests ? escapeHtml(entry.guests).replaceAll("\n", "<br>") : "Keine Gaeste eingetragen";
+  const guestText = entry.guests ? escapeHtml(entry.guests).replaceAll("\n", "<br>") : "Keine Gäste eingetragen";
   return `
     <article class="entry-card">
       <strong>${escapeHtml(entry.roomType)}</strong>
       <span class="entry-meta">${formatVisit(entry.visitDate, entry.visitTime)} · gespeichert ${formatDate(entry.createdAt)}</span>
       <span>Hauptbesucher: <strong>${escapeHtml(entry.mainVisitor)}</strong></span>
-      <p>Gaeste:<br>${guestText}</p>
+      <p>Gäste:<br>${guestText}</p>
     </article>
   `;
 }
@@ -173,7 +173,7 @@ function renderOffer(offer) {
     <article class="cashier-item">
       <div>
         <div class="cashier-title">${escapeHtml(offer.name)}</div>
-        <div class="cashier-meta">${formatCents(offer.priceCents)} pro Stueck · ${formatCents(subtotal)}</div>
+        <div class="cashier-meta">${formatCents(offer.priceCents)} pro Stück · ${formatCents(subtotal)}</div>
       </div>
       <div class="stepper" aria-label="${escapeHtml(offer.name)} verkauft">
         <button class="icon-button" type="button" data-action="minus" data-id="${offer.id}" aria-label="Weniger">-</button>
@@ -181,7 +181,7 @@ function renderOffer(offer) {
         <button class="icon-button" type="button" data-action="plus" data-id="${offer.id}" aria-label="Mehr">+</button>
       </div>
       <strong>${formatCents(subtotal)}</strong>
-      <button class="danger-button" type="button" data-action="delete" data-id="${offer.id}">Loeschen</button>
+      <button class="danger-button" type="button" data-action="delete" data-id="${offer.id}">Löschen</button>
     </article>
   `;
 }

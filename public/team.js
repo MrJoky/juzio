@@ -111,12 +111,13 @@ exportCashier.addEventListener("click", () => {
 });
 
 exportStatistics.addEventListener("click", () => {
-  const rows = [["Datum", "Altersgruppe", "Geschlecht", "Notiz"]];
+  const rows = [["Datum", "Altersgruppe", "Geschlecht", "Anzahl", "Notiz"]];
   statistics.forEach((entry) => {
     rows.push([
       formatDate(entry.createdAt),
       entry.ageGroup || entry.age,
       entry.gender,
+      entry.quantity || 1,
       entry.note
     ]);
   });
@@ -200,9 +201,10 @@ function renderStatistics() {
 
 function renderStatistic(entry) {
   const ageGroup = entry.ageGroup || `${entry.age} Jahre`;
+  const quantity = entry.quantity || 1;
   return `
     <article class="entry-card">
-      <strong>${escapeHtml(ageGroup)} · ${escapeHtml(entry.gender)}</strong>
+      <strong>${escapeHtml(quantity)}x · ${escapeHtml(ageGroup)} · ${escapeHtml(entry.gender)}</strong>
       <span class="entry-meta">${formatDate(entry.createdAt)}</span>
       ${entry.note ? `<p>${escapeHtml(entry.note)}</p>` : "<p>Keine Notiz.</p>"}
     </article>

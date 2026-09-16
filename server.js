@@ -125,6 +125,7 @@ async function handleApi(req, res, url) {
       id: randomUUID(),
       ageGroup: cleanText(body.ageGroup, 20),
       gender: cleanText(body.gender, 80),
+      quantity: Math.max(1, Math.round(Number(body.quantity) || 1)),
       note: cleanText(body.note, 1200),
       createdAt: new Date().toISOString()
     };

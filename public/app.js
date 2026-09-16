@@ -13,8 +13,11 @@ const exportCashier = document.querySelector("#exportCashier");
 const resetCashier = document.querySelector("#resetCashier");
 const submissionsView = document.querySelector("#submissionsView");
 const cashierView = document.querySelector("#cashierView");
+const visitDateInput = customerForm.querySelector("[name='visitDate']");
 
 let cashier = { offers: [] };
+
+visitDateInput.value = new Date().toISOString().slice(0, 10);
 
 customerForm.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -130,12 +133,13 @@ async function saveCashier() {
 }
 
 function renderSubmission(entry) {
+  const guestText = entry.guests ? escapeHtml(entry.guests).replaceAll("\n", "<br>") : "Keine Gaeste eingetragen";
   return `
     <article class="entry-card">
-      <strong>${escapeHtml(entry.name)}</strong>
-      <span class="entry-meta">${formatDate(entry.createdAt)}${entry.topic ? ` · ${escapeHtml(entry.topic)}` : ""}</span>
-      ${entry.contact ? `<span class="entry-meta">${escapeHtml(entry.contact)}</span>` : ""}
-      <p>${escapeHtml(entry.message)}</p>
+      <strong>${escapeHtml(entry.roomType)}</strong>
+      <span class="entry-meta">${formatVisit(entry.visitDate, entry.visitTime)} · gespeichert ${formatDate(entry.createdAt)}</span>
+      <span>Hauptbesucher: <strong>${escapeHtml(entry.mainVisitor)}</strong></span>
+      <p>Gaeste:<br>${guestText}</p>
     </article>
   `;
 }
@@ -223,6 +227,14 @@ function formatDate(value) {
     dateStyle: "short",
     timeStyle: "short"
   }).format(new Date(value));
+}
+
+function formatVisit(date, time) {
+  if (!date && !time) return "Kein Datum";
+  const formattedDate = date
+    ? new Intl.DateTimeFormat("de-DE", { dateStyle: "medium" }).format(new Date(`${date}T00:00:00`))
+    : "Kein Datum";
+  return `${formattedDate}${time ? ` um ${time} Uhr` : ""}`;
 }
 
 function downloadCsv(filename, rows) {

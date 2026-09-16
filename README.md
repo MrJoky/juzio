@@ -1,6 +1,8 @@
 # Juze Theke
 
-Local web app for customer input and a simple protected cashier counter.
+Local web app for visitor-room entries and a simple protected cashier counter.
+
+The public form stores visit entries with date, time, room type, main visitor and guests. The protected team area shows those entries and a separate cashier counter.
 
 ## Start
 

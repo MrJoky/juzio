@@ -59,15 +59,16 @@ async function handleApi(req, res, url) {
     const body = await readJsonBody(req);
     const entry = {
       id: randomUUID(),
-      name: cleanText(body.name, 100),
-      contact: cleanText(body.contact, 160),
-      topic: cleanText(body.topic, 160),
-      message: cleanText(body.message, 1200),
+      visitDate: cleanText(body.visitDate, 20),
+      visitTime: cleanText(body.visitTime, 20),
+      roomType: cleanText(body.roomType, 120),
+      mainVisitor: cleanText(body.mainVisitor, 120),
+      guests: cleanText(body.guests, 1200),
       createdAt: new Date().toISOString()
     };
 
-    if (!entry.name || !entry.message) {
-      sendJson(res, 400, { error: "Name and message are required." });
+    if (!entry.visitDate || !entry.visitTime || !entry.roomType || !entry.mainVisitor) {
+      sendJson(res, 400, { error: "Date, time, room type and main visitor are required." });
       return;
     }
 

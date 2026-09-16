@@ -25,26 +25,38 @@
         <div class="section-grid">
           <div>
             <p class="eyebrow">Kundeneingabe</p>
-            <h1>Was soll bei uns ankommen?</h1>
-            <p class="lead">Eintrag abschicken, fertig. Die Liste dahinter ist nur nach Team-Login sichtbar.</p>
+            <h1>Raum und Besuch eintragen</h1>
+            <p class="lead">Jugendliche koennen ihren Aufenthalt eintragen. Die Liste dahinter ist nur nach Team-Login sichtbar.</p>
           </div>
 
           <form id="customerForm" class="panel form-panel">
             <label>
-              Name
-              <input name="name" autocomplete="name" required>
+              Datum
+              <input name="visitDate" type="date" required>
             </label>
             <label>
-              Kontakt
-              <input name="contact" autocomplete="email" placeholder="Telefon oder E-Mail">
+              Uhrzeit
+              <input name="visitTime" type="time" required>
             </label>
             <label>
-              Thema
-              <input name="topic" placeholder="Angebot, Frage, Notiz">
+              Raumtyp
+              <select name="roomType" required>
+                <option value="">Bitte waehlen</option>
+                <option value="Offener Bereich">Offener Bereich</option>
+                <option value="Musikraum">Musikraum</option>
+                <option value="Kreativraum">Kreativraum</option>
+                <option value="Gamingraum">Gamingraum</option>
+                <option value="Sport / Bewegung">Sport / Bewegung</option>
+                <option value="Sonstiger Raum">Sonstiger Raum</option>
+              </select>
             </label>
             <label>
-              Nachricht
-              <textarea name="message" rows="5" required></textarea>
+              Hauptbesucher
+              <input name="mainVisitor" autocomplete="name" required>
+            </label>
+            <label>
+              Gaeste
+              <textarea name="guests" rows="5" placeholder="Namen der weiteren Besucher, jeweils mit Komma oder neuer Zeile"></textarea>
             </label>
             <button class="primary-button" type="submit">Eintrag speichern</button>
             <p id="customerStatus" class="status" role="status"></p>

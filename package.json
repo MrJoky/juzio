@@ -1,0 +1,14 @@
+{
+  "name": "juze-theke",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local web app for customer inputs and simple cashier counting.",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

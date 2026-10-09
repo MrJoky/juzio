@@ -1,6 +1,16 @@
 # Juze · Lokal im Jugendzentrum
 
-Raumeintragung, Besucherstatistik, Thekenverkauf und Angebotsabstimmung mit lokalem Directus-CMS. Der Laptop ist der Server; Handys greifen im Haus-WLAN darauf zu. Keine Cloud und keine externen Dienste im laufenden Betrieb.
+Raumeintragung, Besucherstatistik, Thekenverkauf und Angebotsabstimmung mit lokalem Directus-CMS. Der Laptop ist der Server; Handys greifen im Haus-WLAN darauf zu. Im vorgesehenen lokalen Betrieb ohne Cloud-Datenspeicherung und ohne externe Analyse-Dienste. Für spätere Directus-Lizenzierung die möglichen Netzwerkverbindungen prüfen.
+
+## Dokumentation
+
+- [Bedienung aller Bereiche](docs/BEDIENUNG.md): Raumliste, Statistik, Verkauf/Pfand, Abstimmung, QR-Codes und Datenschutzseite.
+- [Betrieb und Wartung](docs/BETRIEB.md): Installation, Konfiguration, Backups und spätere Migration.
+- [Datenschutzorganisation](docs/DATENSCHUTZ.md): Datenverzeichnis, Platzhalter, Speicherungen und Löschung.
+- [Sicherheitsprüfung](docs/SICHERHEIT.md): behobene Punkte, Prüfungen und offene Risiken.
+- [Privates Repository und Leserechte](docs/REPOSITORY.md): Push und Zugriff für Außenstehende.
+
+**Offen vor einer Sicherheitsfreigabe:** Directus 11.12.0 hat bekannte Sicherheitslücken. Der isolierte Updateversuch auf 12.5.0 scheitert ohne passende Lizenz am benötigten Rechtekonzept. Der Betreiber kümmert sich später um die Lizenz; die Bestandsversion bleibt vorläufig erhalten. Die Datenschutzseite enthält absichtlich Platzhalter und bleibt ein Entwurf bis zur Freigabe durch den Träger.
 
 ## Starten
 
@@ -26,6 +36,7 @@ Mit **Strg+C** die App beenden. Directus läuft weiter; zum vollständigen Stopp
 | Seite | URL | Zugriff |
 | --- | --- | --- |
 | Raumeintragung für Jugendliche | `/` | Öffentlich |
+| Datenschutzhinweise | `/datenschutz` | Öffentlich, Text durch Admin im CMS bearbeitbar |
 | Login | `/login` | Öffentlich |
 | Angebotsabstimmung | `/abstimmung` | Öffentlich über eigenen Link/QR-Code |
 | Teamübersicht | `/team` | Angemeldet |
@@ -47,6 +58,7 @@ Die automatisch erzeugte Formular-Servicekennung ist nur für die App bestimmt u
 
 | Sammlung im CMS | Zweck |
 | --- | --- |
+| `privacy_pages` | Öffentliche Datenschutzhinweise, Text und Freigabestatus nur durch Admin bearbeiten |
 | `rooms` | Räume anlegen, benennen, über `active` anbieten |
 | `room_entries` | Gespeicherte Raumeintragungen |
 | `visitor_statistics` | Besuchszählung mit Datum, Alter, Geschlecht, Anzahl und Notiz |
@@ -60,7 +72,7 @@ Die automatisch erzeugte Formular-Servicekennung ist nur für die App bestimmt u
 
 Vor jeder Stimme ist ein sechsstelliger Mitarbeitercode erforderlich. Er wird ausschließlich angemeldeten Mitarbeitenden unter **Abstimmung** angezeigt, läuft nach zehn Sekunden ab und kann nur einmal benutzt werden. Nach Verwendung erscheint automatisch ein neuer Code. Jugendliche wählen zuerst ein Angebot, fragen das Team nach dem aktuellen Code und senden sofort ab. Alte Codes und Codes anderer Abstimmungen werden abgewiesen; bei einem App-Neustart verfallen alle Codes. Pro IP sind höchstens zehn Abstimmungsversuche pro Minute erlaubt. Das Team gibt den Code persönlich aus und achtet darauf, dass jede Person nur einmal teilnimmt. Codes allein identifizieren keine Personen: Wer erneut einen gültigen Code bekommt und zugleich Browserdaten und IP wechselt, kann erneut teilnehmen. Die Codes gelten für einen einzelnen laufenden App-Server.
 
-Eine Stimme pro Abstimmung wird ohne Anmeldung über Cookie und Geräte-IP geprüft. Beide Kennungen haben einen eindeutigen Datenbankschlüssel, sodass auch gleichzeitige Versuche keine doppelten Stimmen speichern. Beim Öffnen wird der Status vom Server geladen; LocalStorage sperrt zusätzlich andere offene Tabs. Die IP-Sperre bleibt bei neuem Browser, gelöschten Browserdaten, erneutem QR-Scan und App-Neustart erhalten, solange die Geräte-IP gleich bleibt. IP-Adressen werden nur als mit dem Servergeheimnis gehashte, pro Abstimmung unterschiedliche Kennung gespeichert. Weiterleitungsheader werden nicht als Geräte-IP übernommen.
+Eine Stimme pro Abstimmung wird ohne Anmeldung über Cookie und Geräte-IP geprüft. Beide Kennungen haben einen eindeutigen Datenbankschlüssel, sodass auch gleichzeitige Versuche keine doppelten Stimmen speichern. Das Abstimmungs-Cookie wird für 30 Tage gesetzt; die LocalStorage-Markierung bleibt bis zur Löschung der Browserdaten. Beim Öffnen wird der Status vom Server geladen; LocalStorage sperrt zusätzlich andere offene Tabs. Die IP-Sperre bleibt bei neuem Browser, gelöschten Browserdaten, erneutem QR-Scan und App-Neustart erhalten, solange die Geräte-IP gleich bleibt. IP-Adressen werden nur als mit dem Servergeheimnis gehashte, pro Abstimmung unterschiedliche Kennung gespeichert. Weiterleitungsheader werden nicht als Geräte-IP übernommen.
 
 Die App muss wie vorgesehen direkt im Haus-WLAN erreichbar sein: Geräte mit derselben IP teilen die Sperre, bei einer neuen IP und neuen Browserdaten ist erneute Teilnahme möglich. Das Servergeheimnis `DIRECTUS_SECRET` muss erhalten bleiben. Ältere Stimmen haben keine IP-Kennung und können nachträglich keiner Geräte-IP zugeordnet werden; die zusätzliche Sperre gilt für ab ihrer Einführung gespeicherte Stimmen.
 

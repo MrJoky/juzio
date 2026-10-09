@@ -14,15 +14,15 @@ const publicToken = process.env.PUBLIC_SERVICE_TOKEN;
 const port = Number(process.env.PORT || 3000);
 const host = process.env.HOST || '0.0.0.0';
 const protectedPages = new Set(['/team', '/raumliste', '/statistik', '/theke', '/abstimmung-team', '/qr']);
-const pages = new Set(['/', '/login', '/abstimmung', ...protectedPages]);
+const pages = new Set(['/', '/login', '/abstimmung', '/datenschutz', ...protectedPages]);
 const assets = new Set(['/app.js', '/styles.css', '/manifest.json']);
 function fail(status, message) { throw Object.assign(new Error(message), { status }); }
 function text(value, max = 120) { return String(value ?? '').trim().slice(0, max); }
 function integer(value, min, max) { const n = Number(value); if (!Number.isInteger(n) || n < min || n > max) fail(400, 'Bitte eine gültige Anzahl eingeben.'); return n; }
 function date(value) { const d = text(value, 10); if (!/^\d{4}-\d{2}-\d{2}$/.test(d) || Number.isNaN(Date.parse(d)) || new Date(`${d}T12:00:00Z`).toISOString().slice(0,10) !== d) fail(400, 'Bitte ein gültiges Datum eingeben.'); return d; }
-function uuid(value) { if (!/^[a-f0-9-]{36}$/i.test(String(value))) fail(400, 'Ungültige Auswahl.'); return value; }
+function uuid(value) { if (typeof value !== 'string' || !/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(value)) fail(400, 'Ungültige Auswahl.'); return value; }
 function cookies(req) { return Object.fromEntries((req.headers.cookie || '').split(';').map(p => p.trim().split('='))); }
-function cookie(res, name, value, maxAge) { res.setHeader('Set-Cookie', `${name}=${value}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${maxAge}`); }
+function cookie(res, name, value, maxAge) { res.setHeader('Set-Cookie', `${name}=${value}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${maxAge}${process.env.APP_SECURE_COOKIES === 'true' ? '; Secure' : ''}`); }
 const voterKey = (poll, voter) => createHash('sha256').update(`${poll}:${voter}`).digest('hex');
 export function networkVoterKey(poll, address, secret = process.env.DIRECTUS_SECRET || publicToken) {
   if (!address || !secret) fail(503,'Die Abstimmung ist gerade nicht verfügbar.');
@@ -31,7 +31,10 @@ export function networkVoterKey(poll, address, secret = process.env.DIRECTUS_SEC
 }
 async function body(req) {
   let raw = ''; for await (const chunk of req) { raw += chunk; if (Buffer.byteLength(raw) > 16384) fail(413, 'Eingabe zu groß.'); }
-  try { return JSON.parse(raw || '{}'); } catch { fail(400, 'Ungültige Eingabe.'); }
+  let parsed;
+  try { parsed = JSON.parse(raw || '{}'); } catch { fail(400, 'Ungültige Eingabe.'); }
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) fail(400,'Bitte ein gültiges Formular senden.');
+  return parsed;
 }
 function json(res, status, data) { res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' }); res.end(JSON.stringify(data)); }
 function rate(req, category, maximum) {
@@ -47,17 +50,37 @@ async function session(req) {
     s.refreshing ??= directus('/auth/refresh', { method: 'POST', body: { refresh_token: s.refresh, mode: 'json' } }).then(d => { s.token = d.access_token; s.refresh = d.refresh_token; s.expires = Date.now() + d.expires; }).finally(() => { s.refreshing = null; });
     try { await s.refreshing; } catch { sessions.delete(id); return null; }
   }
-  try { s.user = await directus('/users/me?fields=id,first_name,email', { token: s.token }); } catch (e) { if ([401,403].includes(e.status)) { sessions.delete(id); return null; } throw e; }
+  try {
+    const current = await directus('/users/me?fields=id,first_name,email,role,status', { token: s.token });
+    if (current.role !== s.role || current.status !== 'active') { sessions.delete(id); return null; }
+    s.user = {id:current.id,first_name:current.first_name,email:current.email};
+    await directus('/items/visitor_statistics?limit=1&fields=id',{token:s.token});
+  } catch (e) { if ([401,403].includes(e.status)) { sessions.delete(id); return null; } throw e; }
   return s;
 }
 export function localUrls(interfaces = networkInterfaces(), publicUrl = process.env.PUBLIC_URL, listenPort = port) {
-  if (publicUrl) return [publicUrl.replace(/\/$/, '')];
+  if (publicUrl) {
+    let parsed;
+    try { parsed = new URL(publicUrl); } catch { fail(503,'PUBLIC_URL muss eine gültige HTTP(S)-Adresse sein.'); }
+    if (!['http:','https:'].includes(parsed.protocol) || parsed.username || parsed.password || parsed.pathname !== '/' || parsed.search || parsed.hash) fail(503,'PUBLIC_URL muss eine HTTP(S)-Adresse ohne Pfad oder Zugangsdaten sein.');
+    return [parsed.origin];
+  }
   // Container-Bridges und Tunnel sind vom Handy im Haus-WLAN nicht erreichbar.
   return [...new Set(Object.entries(interfaces)
     .filter(([name]) => !/^(docker|br-|veth|virbr|podman|cni|tun|tap|wg|tailscale|zt)/i.test(name))
     .flatMap(([, addresses]) => addresses || [])
     .filter(n => n && n.family === 'IPv4' && !n.internal && !n.address.startsWith('169.254.'))
     .map(n => `http://${n.address}:${listenPort}`))];
+}
+export function trustedHost(hostHeader) {
+  let requested;
+  try {
+    const parsed = new URL(`http://${hostHeader}`);
+    if (parsed.username || parsed.password || parsed.pathname !== '/' || parsed.search || parsed.hash) return false;
+    requested = parsed.hostname;
+  } catch { return false; }
+  const hosts = new Set(['localhost','127.0.0.1','[::1]',...localUrls().map(url=>new URL(url).hostname),...Object.values(networkInterfaces()).flat().filter(Boolean).map(n=>n.family==='IPv6'?`[${n.address}]`:n.address)]);
+  return hosts.has(requested);
 }
 async function activePolls() {
   const polls = await directus('/items/polls?filter[active][_eq]=true&sort=-created_at&limit=-1', { token: publicToken });
@@ -91,16 +114,26 @@ export function createVoteCodes(now = Date.now) {
 export function createApp() {
   const voteCodes = createVoteCodes();
   const statisticUpdates = new Map();
-  return createServer(async (req, res) => {
+  return createServer({requestTimeout:30000,headersTimeout:10000,maxHeaderSize:16384},async (req, res) => {
     res.setHeader('Cache-Control', 'no-store'); res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('Referrer-Policy', 'same-origin');
+    res.setHeader('Permissions-Policy','camera=(), microphone=(), geolocation=()');
+    res.setHeader('X-Frame-Options','DENY');
     res.setHeader('Content-Security-Policy', "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'");
     try {
+      if (!trustedHost(req.headers.host)) fail(403,'Diese Serveradresse ist nicht freigegeben.');
       const url = new URL(req.url, 'http://local'); const p = url.pathname;
       if (!['GET', 'POST'].includes(req.method)) fail(405, 'Methode nicht erlaubt.');
+      if (req.method === 'GET') rate(req,'read',240);
       if (req.method === 'POST') {
+        if (!(req.headers['content-type'] || '').toLowerCase().startsWith('application/json')) fail(415,'Bitte JSON senden.');
         if (req.headers.origin !== `http://${req.headers.host}` && req.headers.origin !== `https://${req.headers.host}`) fail(403, 'Anfrage muss von dieser App kommen.');
         rate(req, p === '/api/login' ? 'login' : 'write', p === '/api/login' ? 10 : 120);
+      }
+      if (p === '/api/datenschutz' && req.method === 'GET') {
+        const entries = await directus('/items/privacy_pages?filter[slug][_eq]=datenschutz&fields=title,content,status,updated_at&limit=1',{token:publicToken});
+        if (!entries.length) fail(503,'Die Datenschutzhinweise werden gerade eingerichtet. Bitte frage das Team vor Ort.');
+        return json(res,200,entries[0]);
       }
       if (p === '/api/health') { await directus('/server/ping'); return json(res,200,{ok:true}); }
       if (p === '/api/login' && req.method === 'POST') {
@@ -111,10 +144,11 @@ export function createApp() {
         // Nur Konten mit Teamzugriff erhalten eine App-Sitzung.
         try { await directus('/items/visitor_statistics?limit=1&fields=id', { token: auth.access_token }); }
         catch { await directus('/auth/logout', { method: 'POST', body: { refresh_token: auth.refresh_token } }).catch(() => {}); fail(403,'Dieses Konto benötigt die Rolle „Juze Team“.'); }
-        const user = await directus('/users/me?fields=id,first_name,email', { token: auth.access_token });
+        const account = await directus('/users/me?fields=id,first_name,email,role,status', { token: auth.access_token });
+        const user = {id:account.id,first_name:account.first_name,email:account.email};
         const sid = randomBytes(32).toString('hex');
         sessions.delete(cookies(req).juze_session);
-        sessions.set(sid, { token: auth.access_token, refresh: auth.refresh_token, expires: Date.now()+auth.expires, until: Date.now()+28800000, user });
+        sessions.set(sid, { token: auth.access_token, refresh: auth.refresh_token, expires: Date.now()+auth.expires, until: Date.now()+28800000, user, role:account.role });
         cookie(res,'juze_session',sid,28800); return json(res,200,{ok:true,user});
       }
       if (p === '/api/logout' && req.method === 'POST') {
@@ -134,7 +168,7 @@ export function createApp() {
         let voter = cookies(req).juze_voter;
         if (!/^[a-f0-9]{64}$/.test(voter || '')) {
           voter = randomBytes(32).toString('hex');
-          cookie(res,'juze_voter',voter,31536000);
+          cookie(res,'juze_voter',voter,2592000);
         }
         const polls = await activePolls();
         const options = await directus('/items/poll_options?filter[active][_eq]=true&fields=id,poll,name,description&limit=-1',{token:publicToken});
@@ -255,7 +289,7 @@ export function createApp() {
         res.writeHead(200,{'Content-Type':mime[path.extname(file)]}); return res.end(await readFile(path.join(root,'public',file)));
       }
       fail(404,'Seite nicht gefunden.');
-    } catch(e) { json(res,e.status || 500,{error:e.status ? e.message : 'Die Anfrage konnte nicht verarbeitet werden.'}); if (!e.status) console.error(e); }
+    } catch(e) { json(res,e.status || 500,{error:e.status ? e.message : 'Die Anfrage konnte nicht verarbeitet werden.'}); if (!e.status) console.error('Unerwarteter Serverfehler; keine Formulardaten protokolliert.'); }
   });
 }
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

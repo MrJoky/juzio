@@ -21,6 +21,8 @@ test('Directus: Teamlogin, Eintragung, Statistik, Verkauf, Abstimmung und Rechte
     const req=async(path,body,cookie='')=>{const r=await fetch(base+path,{method:body?'POST':'GET',headers:{Origin:base,...(body?{'Content-Type':'application/json'}:{}),...(cookie?{Cookie:cookie}:{})},body:body?JSON.stringify(body):undefined});const data=await r.json();return {r,data,cookie:r.headers.get('set-cookie')?.split(';')[0]};};
     const login=await req('/api/login',{email:user.email,password});assert.equal(login.r.status,200,JSON.stringify(login.data));const staff=login.cookie;
     assert.equal((await req('/api/me',null,staff)).data.user.id,user.id);
+    assert.match(login.r.headers.get('set-cookie'),/HttpOnly/);
+    assert.match(login.r.headers.get('set-cookie'),/SameSite=Strict/);
     assert.equal((await req('/api/room-entries',{room:room.id,name:'Test',guests:'Gast',visit_date:'2026-10-06',visit_time:'15:30'})).r.status,201);
     const entries=(await req('/api/staff/entries',null,staff)).data;const entry=entries.find(e=>e.room===room.id);assert.equal(entry.name,'Test');cleanup.push(()=>admin('/items/room_entries/'+entry.id,'DELETE'));
     assert.equal((await req('/api/room-entries',{room:room.id,name:'Test',visit_date:'2026-02-31',visit_time:'25:90'})).r.status,400);
@@ -93,6 +95,21 @@ test('Directus: Teamlogin, Eintragung, Statistik, Verkauf, Abstimmung und Rechte
     const leaked=await admin(`/items/sales?filter[request_key][_eq]=${atomicKey}`);
     for(const position of leaked)cleanup.push(()=>admin('/items/sales/'+position.id,'DELETE'));
     assert.equal(leaked.length,0,'Ware und Pfand müssen gemeinsam gespeichert werden');
+    const privacy=await req('/api/datenschutz');assert.equal(privacy.r.status,200);assert.ok(privacy.data.content.length>100);
+    assert.deepEqual(Object.keys(privacy.data).sort(),['content','status','title','updated_at']);
+    const privacyItem=(await admin('/items/privacy_pages?filter[slug][_eq]=datenschutz'))[0];
+    await assert.rejects(()=>directus('/items/privacy_pages/'+privacyItem.id,{token:process.env.PUBLIC_SERVICE_TOKEN,method:'PATCH',body:{content:'Unbefugte Änderung'}}),e=>e.status===403);
+    const savedPrivacy={title:privacyItem.title,content:privacyItem.content,status:privacyItem.status};
+    try {
+      await admin('/items/privacy_pages/'+privacyItem.id,'PATCH',{title:'Datenschutz-Test',content:'Vom Admin bearbeiteter Text',status:'draft'});
+      assert.equal((await req('/api/datenschutz')).data.content,'Vom Admin bearbeiteter Text');
+    } finally {await admin('/items/privacy_pages/'+privacyItem.id,'PATCH',savedPrivacy);}
+    const teamAuth=await directus('/auth/login',{method:'POST',body:{email:user.email,password,mode:'json'}});
+    try {
+      await assert.rejects(()=>directus('/items/privacy_pages/'+privacyItem.id,{token:teamAuth.access_token,method:'PATCH',body:{content:'Unbefugte Änderung'}}),e=>e.status===403);
+    } finally {await directus('/auth/logout',{method:'POST',body:{refresh_token:teamAuth.refresh_token}});}
+    const unpublished=await item('privacy_pages',{slug:'internal-'+suffix,title:'Intern',content:'Nicht öffentlich',status:'draft'});
+    assert.equal((await directus('/items/privacy_pages',{token:process.env.PUBLIC_SERVICE_TOKEN})).some(p=>p.slug===unpublished.slug),false);
     const beforeVote=await req('/api/polls');
     assert.equal(beforeVote.data.find(p=>p.id===poll.id).voted,false);
     const voter=beforeVote.cookie;
@@ -112,6 +129,9 @@ test('Directus: Teamlogin, Eintragung, Statistik, Verkauf, Abstimmung und Rechte
     const statusKeys=await directus('/items/votes?limit=1',{token:process.env.PUBLIC_SERVICE_TOKEN});
     assert.ok(statusKeys.every(row=>Object.keys(row).every(key=>['voter_key','network_key'].includes(key))));
     await admin('/items/polls/'+poll.id,'PATCH',{active:false});assert.equal((await req('/api/vote',{poll:poll.id,option:option.id,code:'000000'},voter)).r.status,400);
+    await admin('/users/'+user.id,'PATCH',{role:null});
+    assert.equal((await req('/api/me',null,staff)).data.user,null);
+    assert.equal((await req('/api/staff/vote-codes',null,staff)).r.status,401);
     assert.equal((await req('/api/logout',{},staff)).r.status,200);assert.equal((await req('/api/staff/sales',null,staff)).r.status,401);
   }finally{
     if(server)await new Promise(r=>server.close(r));

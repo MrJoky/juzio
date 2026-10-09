@@ -7,7 +7,7 @@ test('Öffentliche Seiten und Zugriffsschutz ohne Sitzung',async()=>{
   const server=createApp();server.listen(0,'127.0.0.1');await once(server,'listening');
   const base=`http://127.0.0.1:${server.address().port}`;
   try {
-    for(const route of ['/','/login','/abstimmung','/app.js','/styles.css']) assert.equal((await fetch(base+route)).status,200,route);
+    for(const route of ['/','/login','/abstimmung','/datenschutz','/app.js','/styles.css']) assert.equal((await fetch(base+route)).status,200,route);
     for(const route of ['/team','/raumliste','/statistik','/theke','/abstimmung-team','/qr']) {
       const r=await fetch(base+route,{redirect:'manual'});assert.equal(r.status,303);assert.equal(r.headers.get('location'),'/login');
     }

@@ -1,7 +1,7 @@
 {
   "name": "juze-theke", "version": "1.0.0", "private": true,
   "description": "Lokales Jugendzentrum mit Directus CMS", "type": "module",
-  "scripts": { "start": "node --env-file-if-exists=.env server.js", "dev": "node --env-file-if-exists=.env --watch server.js", "test": "node --test" },
+  "scripts": { "start": "node --env-file-if-exists=.env.local server.js", "dev": "node --env-file-if-exists=.env.local --watch server.js", "test": "node --test" },
   "engines": { "node": ">=22" },
   "dependencies": { "qrcode": "1.5.4" }
 }

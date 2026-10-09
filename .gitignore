@@ -5,3 +5,14 @@ data/*.json
 *.log
 .env.local
 backups/
+
+.env.*
+!.env.example
+*.db
+*.db-*
+*.sqlite*
+*.csv
+*.tar
+*.tgz
+*.pem
+*.key

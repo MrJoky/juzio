@@ -484,3 +484,5 @@ code { overflow-wrap: anywhere; }
 
 .deposit-checkbox { display: flex; align-items: center; gap: 12px; }
 .deposit-checkbox input { width: 22px; min-height: 22px; }
+
+.privacy-content { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.7; padding: 24px; }

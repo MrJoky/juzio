@@ -15,6 +15,11 @@ services:
       DB_FILENAME: /directus/database/data.db
       WEBSOCKETS_ENABLED: "false"
       TELEMETRY: "false"
+      RATE_LIMITER_ENABLED: "true"
+      RATE_LIMITER_POINTS: "300"
+      RATE_LIMITER_DURATION: "60"
+      LOG_LEVEL: "warn"
+      PUBLIC_REGISTRATION: "false"
     restart: unless-stopped
 volumes:
   directus_database:

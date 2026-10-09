@@ -1,3 +1,4 @@
+import { privacyTemplate } from './privacy-template.mjs';
 import { directus } from './directus.mjs';
 let token = process.env.DIRECTUS_ADMIN_TOKEN;
 if (!token || !process.env.PUBLIC_SERVICE_TOKEN) throw new Error('Bitte ./start.sh verwenden.');
@@ -21,6 +22,7 @@ const field = (name, type = 'string', extra = {}) => ({ field: name, type, meta:
 const id = { field: 'id', type: 'uuid', meta: { hidden: true, special: ['uuid'], interface: 'input' }, schema: { is_primary_key: true } };
 const created = { field: 'created_at', type: 'timestamp', meta: { special: ['date-created'], readonly: true, interface: 'datetime' }, schema: {} };
 const schemas = {
+  privacy_pages: [field('slug','string',{is_unique:true}),field('title'),field('content','text'),field('status','string',{default_value:'draft'}),{field:'updated_at',type:'timestamp',meta:{special:['date-updated'],readonly:true},schema:{}}],
   rooms: [field('name', 'string', { is_nullable: false }), field('active', 'boolean', { default_value: true })],
   room_entries: [field('visit_date', 'date'), field('visit_time'), field('room', 'uuid'), field('room_name'), field('name'), field('guests', 'text')],
   visitor_statistics: [field('visit_date', 'date'), field('visit_time'), field('age_group'), field('gender'), field('quantity', 'integer'), field('note', 'text')],
@@ -36,6 +38,8 @@ for (const [collection, fields] of Object.entries(schemas)) {
   const present = new Set((await api(`/fields/${collection}`)).map(f => f.field));
   for (const f of [id, ...fields, created]) if (!present.has(f.field)) await api(`/fields/${collection}`, 'POST', f);
 }
+await api('/fields/privacy_pages/status','PATCH',{meta:{interface:'select-dropdown',options:{choices:[{text:'Entwurf',value:'draft'},{text:'Veröffentlicht',value:'published'}]}}});
+await api('/fields/privacy_pages/content','PATCH',{meta:{note:'Klartext mit Absätzen. Platzhalter ergänzen und erst nach Freigabe veröffentlichen.'}});
 await api('/fields/products/has_deposit','PATCH',{meta:{interface:'boolean',options:{label:'Produkt mit Pfand'}}});
 await api('/fields/products/deposit_cents','PATCH',{meta:{note:'Pfand pro Stück in Cent, zusätzlich zum Produktpreis.'}});
 // Directus zeigt verknüpfte Angebote als Auswahl statt als manuelle UUID-Eingabe.
@@ -57,14 +61,16 @@ async function permission(policyId, collection, action, fields = ['*'], filter =
 const staffPolicy = await policy('Juze Team', true);
 for (const c of Object.keys(schemas)) {
   await permission(staffPolicy, c, 'read', c === 'votes' ? ['id', 'poll', 'option', 'created_at'] : ['*']);
-  if (c !== 'votes') for (const a of ['create', 'update', 'delete']) await permission(staffPolicy, c, a);
+  if (!['votes','privacy_pages'].includes(c)) for (const a of ['create', 'update', 'delete']) await permission(staffPolicy, c, a);
 }
 let role = (await api('/roles?filter[name][_eq]=Juze%20Team'))[0];
 if (!role) role = await api('/roles', 'POST', { name: 'Juze Team', description: 'Kollegen: Raumliste, Statistik, Verkauf und Abstimmungen' });
 const access = await api(`/access?filter[role][_eq]=${role.id}&filter[policy][_eq]=${staffPolicy}`);
 if (!access.length) await api('/access', 'POST', { role: role.id, policy: staffPolicy });
+if (!(await api('/items/privacy_pages?filter[slug][_eq]=datenschutz&limit=1')).length) await api('/items/privacy_pages','POST',{slug:'datenschutz',title:'Datenschutz',content:privacyTemplate,status:'draft'});
 const publicPolicy = await policy('Juze Formular-Service', false);
 for (const c of ['rooms', 'polls', 'poll_options']) await permission(publicPolicy, c, 'read', ['*'], { active: { _eq: true } });
+await permission(publicPolicy,'privacy_pages','read',['slug','title','content','status','updated_at'],{slug:{_eq:'datenschutz'}});
 for (const c of ['room_entries', 'votes']) await permission(publicPolicy, c, 'create');
 // Der App-Server liest gehashte Kennungen für den eigenen Browserstatus.
 await permission(publicPolicy, 'votes', 'read', ['voter_key', 'network_key']);

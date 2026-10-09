@@ -1,71 +1,14 @@
 <!doctype html>
 <html lang="de">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#f7f3ec">
-    <title>Juze Theke</title>
-    <link rel="stylesheet" href="/styles.css">
-    <link rel="manifest" href="/manifest.json">
-  </head>
-  <body>
-    <header class="topbar">
-      <a class="brand" href="/" aria-label="Juze Theke">
-        <span class="brand-mark">JT</span>
-        <span>Juze Theke</span>
-      </a>
-      <nav class="nav" aria-label="Bereiche">
-        <a href="/">Eingabe</a>
-        <a href="/team.html">Team</a>
-      </nav>
-    </header>
-
-    <main>
-      <section class="page-section customer-band">
-        <div class="section-grid">
-          <div>
-            <p class="eyebrow">Kundeneingabe</p>
-            <h1>Raum und Besuch eintragen</h1>
-            <p class="lead">Jugendliche können ihren Aufenthalt eintragen. Die Liste dahinter ist nur nach Team-Login sichtbar.</p>
-          </div>
-
-          <form id="customerForm" class="panel form-panel">
-            <label>
-              Datum
-              <input name="visitDate" type="date" required>
-            </label>
-            <label>
-              Uhrzeit
-              <input name="visitTime" type="time" required>
-            </label>
-            <label>
-              Raumtyp
-              <select name="roomType" required>
-                <option value="">Bitte wählen</option>
-                <option value="Gaming">Gaming</option>
-                <option value="Chill">Chill</option>
-                <option value="Mädchenraum">Mädchenraum</option>
-                <option value="Tonstudio">Tonstudio</option>
-                <option value="Fittnessraum">Fittnessraum</option>
-                <option value="Küche">Küche</option>
-              </select>
-            </label>
-            <label>
-              Hauptbesucher
-              <input name="mainVisitor" autocomplete="name" required>
-            </label>
-            <label>
-              Gäste
-              <textarea name="guests" rows="5" placeholder="Namen der weiteren Besucher, jeweils mit Komma oder neuer Zeile"></textarea>
-            </label>
-            <button class="primary-button" type="submit">Eintrag speichern</button>
-            <p id="customerStatus" class="status" role="status"></p>
-          </form>
-        </div>
-      </section>
-
-    </main>
-
-    <script src="/visitor.js" type="module"></script>
-  </body>
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#226b51"><title>Juze · Jugendzentrum</title>
+  <link rel="stylesheet" href="/styles.css"><link rel="manifest" href="/manifest.json">
+</head>
+<body>
+  <header class="topbar"><a class="brand" href="/"><span class="brand-mark">J</span><span>Juze<span class="brand-sub">Unser Haus. Unser Alltag.</span></span></a><nav id="nav" class="nav" aria-label="Bereiche"><a href="/">Raumeintragung</a><a href="/login">Team-Login</a></nav></header>
+  <main class="page-section"><div id="app" class="staff-shell"><p role="status">Wird geladen …</p></div></main>
+  <footer>Juze · Lokal im Haus</footer>
+  <script type="module" src="/app.js"></script>
+</body>
 </html>

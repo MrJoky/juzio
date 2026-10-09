@@ -1,0 +1,21 @@
+services:
+  directus:
+    image: directus/directus:11.12.0
+    ports:
+      - "127.0.0.1:8055:8055"
+    volumes:
+      - directus_database:/directus/database
+      - directus_uploads:/directus/uploads
+    environment:
+      SECRET: ${DIRECTUS_SECRET:?Bitte start.sh verwenden}
+      ADMIN_EMAIL: ${DIRECTUS_ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${DIRECTUS_ADMIN_PASSWORD}
+      ADMIN_TOKEN: ${DIRECTUS_ADMIN_TOKEN}
+      DB_CLIENT: sqlite3
+      DB_FILENAME: /directus/database/data.db
+      WEBSOCKETS_ENABLED: "false"
+      TELEMETRY: "false"
+    restart: unless-stopped
+volumes:
+  directus_database:
+  directus_uploads:

@@ -1,14 +1,7 @@
 {
-  "name": "juze-theke",
-  "version": "0.1.0",
-  "private": true,
-  "description": "Local web app for customer inputs and simple cashier counting.",
-  "type": "module",
-  "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch server.js"
-  },
-  "engines": {
-    "node": ">=20"
-  }
+  "name": "juze-theke", "version": "1.0.0", "private": true,
+  "description": "Lokales Jugendzentrum mit Directus CMS", "type": "module",
+  "scripts": { "start": "node --env-file-if-exists=.env server.js", "dev": "node --env-file-if-exists=.env --watch server.js", "test": "node --test" },
+  "engines": { "node": ">=22" },
+  "dependencies": { "qrcode": "1.5.4" }
 }

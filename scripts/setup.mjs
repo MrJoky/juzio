@@ -3,6 +3,7 @@ import { directus } from './directus.mjs';
 import { organizeCollections } from './collection-navigation.mjs';
 import { setupProductPriceSync } from './product-price-sync.mjs';
 import { setupInsights } from './insights.mjs';
+import { findOrRename, setupBranding } from './branding.mjs';
 let token = process.env.DIRECTUS_ADMIN_TOKEN;
 if (!token || !process.env.PUBLIC_SERVICE_TOKEN) throw new Error('Bitte ./start.sh verwenden.');
 const api = (url, method = 'GET', body) => directus(url, { token, method, body });
@@ -37,7 +38,7 @@ const schemas = {
 };
 const existing = new Set((await api('/collections')).map(c => c.collection));
 for (const [collection, fields] of Object.entries(schemas)) {
-  if (!existing.has(collection)) await api('/collections', 'POST', { collection, meta: { icon: 'folder', note: 'Juze · lokal' }, schema: {}, fields: [id, ...fields, created] });
+  if (!existing.has(collection)) await api('/collections', 'POST', { collection, meta: { icon: 'folder', note: 'JuZ.io · lokal' }, schema: {}, fields: [id, ...fields, created] });
   const present = new Set((await api(`/fields/${collection}`)).map(f => f.field));
   for (const f of [id, ...fields, created]) if (!present.has(f.field)) await api(`/fields/${collection}`, 'POST', f);
 }
@@ -47,6 +48,7 @@ for (const name of ['voter_key', 'network_key']) {
   if (voteFields.some(f => f.field === name)) await api(`/fields/votes/${name}`, 'PATCH', { schema: { is_nullable: true }, meta: { hidden: true, required: false } });
 }
 await organizeCollections(api);
+await setupBranding(api);
 await setupProductPriceSync(api);
 await api('/fields/privacy_pages/status','PATCH',{meta:{interface:'select-dropdown',options:{choices:[{text:'Entwurf',value:'draft'},{text:'Veröffentlicht',value:'published'}]}}});
 await api('/fields/privacy_pages/content','PATCH',{meta:{note:'Klartext mit Absätzen. Platzhalter ergänzen und erst nach Freigabe veröffentlichen.'}});
@@ -58,8 +60,8 @@ for (const [collection, fieldName, related] of [['poll_options','poll','polls'],
   if (!relations.some(r => r.collection === collection && r.field === fieldName)) await api('/relations','POST',{ collection, field: fieldName, related_collection: related, schema: { on_delete: 'SET NULL' } });
   await api(`/fields/${collection}/${fieldName}`,'PATCH',{ meta: { interface: 'select-dropdown-m2o', special: ['m2o'], options: { template: related === 'polls' ? '{{title}}' : '{{name}}' } } });
 }
-async function policy(name, appAccess) {
-  let p = (await api(`/policies?filter[name][_eq]=${encodeURIComponent(name)}`))[0];
+async function policy(name, appAccess, previousName) {
+  let p = await findOrRename(api, '/policies', name, previousName);
   if (!p) p = await api('/policies', 'POST', { name, admin_access: false, app_access: appAccess });
   return p.id;
 }
@@ -68,18 +70,18 @@ async function permission(policyId, collection, action, fields = ['*'], filter =
   if (!found.length) await api('/permissions', 'POST', { policy: policyId, collection, action, fields, permissions: filter });
   else if (collection === 'votes' && action === 'read' && !fields.every(f => found[0].fields.includes(f))) await api(`/permissions/${found[0].id}`, 'PATCH', { fields });
 }
-const staffPolicy = await policy('Juze Team', true);
+const staffPolicy = await policy('JuZ.io Team', true, 'Juze Team');
 await setupInsights(api, staffPolicy);
 for (const c of Object.keys(schemas)) {
   await permission(staffPolicy, c, 'read', c === 'votes' ? ['id', 'poll', 'option', 'created_at'] : ['*']);
   if (!['votes','privacy_pages'].includes(c)) for (const a of ['create', 'update', 'delete']) await permission(staffPolicy, c, a);
 }
-let role = (await api('/roles?filter[name][_eq]=Juze%20Team'))[0];
-if (!role) role = await api('/roles', 'POST', { name: 'Juze Team', description: 'Kollegen: Raumliste, Statistik, Verkauf und Abstimmungen' });
+let role = await findOrRename(api, '/roles', 'JuZ.io Team', 'Juze Team');
+if (!role) role = await api('/roles', 'POST', { name: 'JuZ.io Team', description: 'Kollegen: Raumliste, Statistik, Verkauf und Abstimmungen' });
 const access = await api(`/access?filter[role][_eq]=${role.id}&filter[policy][_eq]=${staffPolicy}`);
 if (!access.length) await api('/access', 'POST', { role: role.id, policy: staffPolicy });
 if (!(await api('/items/privacy_pages?filter[slug][_eq]=datenschutz&limit=1')).length) await api('/items/privacy_pages','POST',{slug:'datenschutz',title:'Datenschutz',content:privacyTemplate,status:'draft'});
-const publicPolicy = await policy('Juze Formular-Service', false);
+const publicPolicy = await policy('JuZ.io Formular-Service', false, 'Juze Formular-Service');
 for (const c of ['rooms', 'polls', 'poll_options']) await permission(publicPolicy, c, 'read', ['*'], { active: { _eq: true } });
 await permission(publicPolicy,'privacy_pages','read',['slug','title','content','status','updated_at'],{slug:{_eq:'datenschutz'}});
 for (const c of ['room_entries', 'votes']) await permission(publicPolicy, c, 'create');
@@ -97,4 +99,4 @@ if (!existing.has('polls')) {
   const poll = await api('/items/polls', 'POST', { title: 'Was wünscht ihr euch nächste Woche?', description: 'Wähle dein Lieblingsangebot für die Theke. Eine Stimme pro Gerät.', week_of: nextMonday.toISOString().slice(0,10), active: true });
   for (const name of ['Pizza-Toast', 'Obstbecher', 'Waffeln']) await api('/items/poll_options', 'POST', { poll: poll.id, name, active: true });
 }
-console.log('Directus eingerichtet. Kollegen unter Benutzerverwaltung mit Rolle „Juze Team“ anlegen.');
+console.log('JuZ.io eingerichtet. Kollegen unter Benutzerverwaltung mit Rolle „JuZ.io Team“ anlegen.');

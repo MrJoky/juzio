@@ -7,7 +7,7 @@ export async function roomPage(app) {
   const rooms = await api('/api/rooms');
   app.innerHTML =
     heading(
-      'Willkommen im Juze',
+      'Willkommen bei JuZ.io',
       'Welchen Raum nutzt du?',
       'Trage dich und deine Freunde ein.',
     ) +

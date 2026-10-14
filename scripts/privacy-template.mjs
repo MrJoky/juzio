@@ -1,4 +1,4 @@
-export const privacyTemplate = `Datenschutzhinweise für das Jugendzentrum
+export const privacyTemplate = `Datenschutzhinweise für JuZ.io im Jugendzentrum
 
 ENTWURF – Angaben des Trägers und Freigabe fehlen noch.
 

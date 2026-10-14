@@ -144,7 +144,7 @@ export function createApp() {
         catch (e) { if ([400,401,403].includes(e.status)) fail(401,'E-Mail, Passwort oder Einmalcode stimmen nicht.'); throw e; }
         // Nur Konten mit Teamzugriff erhalten eine App-Sitzung.
         try { await directus('/items/visitor_statistics?limit=1&fields=id', { token: auth.access_token }); }
-        catch { await directus('/auth/logout', { method: 'POST', body: { refresh_token: auth.refresh_token } }).catch(() => {}); fail(403,'Dieses Konto benötigt die Rolle „Juze Team“.'); }
+        catch { await directus('/auth/logout', { method: 'POST', body: { refresh_token: auth.refresh_token } }).catch(() => {}); fail(403,'Dieses Konto benötigt die Rolle „JuZ.io Team“.'); }
         const account = await directus('/users/me?fields=id,first_name,email,role,status', { token: auth.access_token });
         const user = {id:account.id,first_name:account.first_name,email:account.email};
         const sid = randomBytes(32).toString('hex');
@@ -283,10 +283,10 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const server = createApp();
   server.on('error', error => {
     if (error.code === 'EADDRINUSE') {
-      console.error(`Port ${port} ist bereits belegt. Falls Juze schon läuft, öffne http://localhost:${port}.`);
+      console.error(`Port ${port} ist bereits belegt. Falls JuZ.io schon läuft, öffne http://localhost:${port}.`);
       console.error('Für einen Neustart zuerst die laufende Instanz mit Strg+C in ihrem Terminal beenden.');
     } else console.error(`Die App konnte nicht starten (${error.code || 'unbekannter Fehler'}).`);
     process.exitCode = 1;
   });
-  server.listen(port,host,()=>{ console.log(`Juze: http://localhost:${port}`); for(const url of localUrls()) console.log(`WLAN: ${url}`); });
+  server.listen(port,host,()=>{ console.log(`JuZ.io: http://localhost:${port}`); for(const url of localUrls()) console.log(`WLAN: ${url}`); });
 }

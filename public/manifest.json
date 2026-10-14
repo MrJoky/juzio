@@ -1,1 +1,10 @@
-{"name":"Juze Jugendzentrum","short_name":"Juze","start_url":"/","display":"standalone","background_color":"#f7f3ec","theme_color":"#226b51","lang":"de"}
+{
+  "name": "JuZ.io",
+  "short_name": "JuZ.io",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7f3ec",
+  "theme_color": "#226b51",
+  "lang": "de",
+  "description": "Mehr Zeit für Jugendarbeit."
+}

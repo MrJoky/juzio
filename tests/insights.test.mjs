@@ -63,12 +63,12 @@ test('Insights: Team kann alle Diagramme lesen; Abfragen stimmen und Service ble
   skip: process.env.DIRECTUS_INTEGRATION !== '1'
 }, async () => {
   const admin = (url, method = 'GET', body) => directus(url, { token: process.env.DIRECTUS_ADMIN_TOKEN, method, body });
-  const role = (await admin('/roles?filter[name][_eq]=Juze%20Team'))[0];
+  const role = (await admin('/roles?filter[name][_eq]=JuZ.io%20Team'))[0];
   const token = randomBytes(32).toString('hex');
   const user = await admin('/users', 'POST', { email: `insights-${randomUUID()}@example.org`, role: role.id, token, status: 'active' });
   const team = url => directus(url, { token });
   try {
-    const policy = (await admin('/policies?filter[name][_eq]=Juze%20Team'))[0];
+    const policy = (await admin('/policies?filter[name][_eq]=JuZ.io%20Team'))[0];
     const before = await admin('/panels?limit=-1');
     await setupInsights(admin, policy.id);
     assert.deepEqual(await admin('/panels?limit=-1'), before, 'Erneutes Setup verändert vorhandene Panels nicht');

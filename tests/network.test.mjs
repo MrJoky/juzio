@@ -13,5 +13,5 @@ test('QR-Links verwenden das lokale Netz statt Container- und VPN-Adressen', () 
     eth0: [ipv4('169.254.1.2')],
   };
   assert.deepEqual(localUrls(interfaces, '', 3000), ['http://192.168.181.127:3000']);
-  assert.deepEqual(localUrls(interfaces, 'https://juze.example/', 3000), ['https://juze.example']);
+  assert.deepEqual(localUrls(interfaces, 'https://juzio.example/', 3000), ['https://juzio.example']);
 });

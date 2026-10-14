@@ -4,16 +4,24 @@
 
 Quellcode, Schema-/Setup-Skripte, Tests, Dokumentation, `package-lock.json` und `.env.example` ohne echte Werte. `.env.local`, `.env`, Datenbanken, Backups, private Schlüssel und CSV-Exporte gehören nicht hinein. `.gitignore` schützt typische Dateien, ersetzt aber keine Prüfung vor dem Commit. Auch im privaten Repository keine Passwörter oder Besucherlisten speichern.
 
-Aktuell ist kein Git-Remote eingerichtet. Vor dem Push im gewünschten Hosting ein **privates** Repository anlegen. Bei GitHub keine README automatisch erzeugen, wenn ihr den vorhandenen Verlauf übernehmen wollt. Danach lokal:
+Für ein neues Projekt vor dem Push im gewünschten Hosting ein **privates** Repository anlegen. Bei GitHub keine README automatisch erzeugen, wenn ihr den vorhandenen Verlauf übernehmen wollt. Danach lokal:
 
 ```bash
 git remote add origin <SSH-URL-des-privaten-Repositories>
 git log --oneline -3
 git status --short
-git push -u origin master
+git push -u origin main
 ```
 
 Die tatsächliche URL einsetzen. Keine Tokens in die URL schreiben. Vorher Repository-Sichtbarkeit und Zugriffsliste prüfen. Diese Arbeit setzt keine Hosting-Rechte und pusht nicht automatisch.
+
+Nach einer Umbenennung auf GitHub die lokale Verbindung auf die neue Repository-URL setzen:
+
+```bash
+git remote set-url origin <NEUE-REPOSITORY-URL>
+git remote -v
+git push
+```
 
 ## Leserechte für Außenstehende
 
@@ -25,7 +33,7 @@ Für Besitzer und Schreibberechtigte Zwei-Faktor-Anmeldung aktivieren. Änderung
 
 ## Wenn ein Geheimnis doch veröffentlicht wurde
 
-Betroffenen Schlüssel sofort widerrufen/erneuern; Löschen aus der aktuellen Datei allein genügt nicht. Git-Verlauf und bereits verteilte Kopien berücksichtigen. Eine Verlaufbereinigung mit allen Mitwirkenden planen, nicht ungefragt force-pushen. `DIRECTUS_SECRET` nicht ohne Folgenprüfung ändern: bisherige IP-Stimmsperren hängen daran.
+Betroffenen Schlüssel sofort widerrufen/erneuern; Löschen aus der aktuellen Datei allein genügt nicht. Git-Verlauf und bereits verteilte Kopien berücksichtigen. Eine Verlaufbereinigung mit allen Mitwirkenden planen, nicht ungefragt force-pushen. `DIRECTUS_SECRET` nicht ohne Folgenprüfung ändern: Directus verwendet es zur Signierung.
 
 ## Quellen
 

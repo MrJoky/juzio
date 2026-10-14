@@ -19,7 +19,7 @@ Die App verwendet normale JavaScript-Module im Browser. Es gibt keinen Buildschr
 | QR-Codes `/qr` | [qr.js](../public/pages/qr.js) |
 | Datenschutzanzeige `/datenschutz` | [datenschutz.js](../public/pages/datenschutz.js) |
 
-Beispielsweise stehen die Begrüßung „Willkommen im Juze“ und das Eintragungsformular in `pages/raumeintragung.js`. Die eigentlichen Datenschutzhinweise werden weiterhin in Directus gepflegt; `pages/datenschutz.js` enthält nur deren Darstellung und feste Hinweistexte.
+Beispielsweise stehen die Begrüßung „Willkommen bei JuZ.io“ und das Eintragungsformular in `pages/raumeintragung.js`. Die eigentlichen Datenschutzhinweise werden weiterhin in Directus gepflegt; `pages/datenschutz.js` enthält nur deren Darstellung und feste Hinweistexte.
 
 Text zwischen HTML-Tags oder innerhalb von Anführungszeichen ändern. `${…}` fügt berechnete Werte ein; diese Ausdrücke sowie `id`, `name`, `data-*` und die Importpfade nur bei einer entsprechenden Funktionsänderung anpassen. Werte aus dem CMS oder Formulareingaben werden vor der HTML-Ausgabe mit `esc()` maskiert.
 

@@ -8,6 +8,12 @@ Die App läuft standardmäßig auf `0.0.0.0:3000`, Directus nur auf `127.0.0.1:8
 
 Seit 14. Oktober 2026 läuft **Directus 12.5.0 mit aktiver Open-Innovation-Grant-Lizenz**. Die Lizenz erfordert ausgehende Lizenz- und Telemetrieverbindungen. Die App bleibt für den lokalen Betrieb vorgesehen; eine Internetfreigabe erfolgt dadurch nicht.
 
+## Produktname und bestehende Installationen
+
+Das Produkt heißt **JuZ.io**, das npm-Paket `juzio`. Das Setup benennt die bisherigen Teamrollen, Policies, Standard-Dashboards und den Preis-Flow um und erhält dabei deren IDs und Rechte. Eigene Dashboardnamen bleiben erhalten. Der Directus-Projektname lautet ebenfalls JuZ.io.
+
+Die internen Container-/Volumenamen `juze-directus*`, die Sitzungscookie-Kennung `juze_session` und bestehende Collection-Schlüssel `juze_*` bleiben aus Kompatibilitätsgründen erhalten. Ebenso bleibt der UUID-Namensraum der Dashboards unverändert; sonst würden neue Dashboards entstehen. Die Markenänderung ändert weder Geschäftsdaten noch die Lizenzbindung oder die lokale Serveradresse.
+
 ## Konfiguration
 
 | Variable | Bedeutung |
@@ -87,7 +93,7 @@ Integrationstests erstellen Testkonten und Datensätze und entfernen sie anschli
 - **Port bereits belegt / address already in use:** Die App läuft möglicherweise bereits. `http://localhost:3000` öffnen oder die laufende Instanz mit Strg+C in ihrem Terminal beenden und anschließend `./start.sh` erneut ausführen. Bei abweichendem `PORT` die konfigurierte Portnummer verwenden.
 - **Handy erreicht die App nicht:** WLAN, Server-IP, Firewall, Port 3000 und Router-Isolation prüfen. Bei neuer IP QR-Codes neu drucken.
 - **Serveradresse nicht freigegeben:** tatsächliche Adresse in `PUBLIC_URL` setzen; DNS-Aliasse werden nicht automatisch akzeptiert.
-- **Login funktioniert nicht:** Konto aktiv, Rolle Juze Team, richtiges Passwort/OTP; `.env.local` und CMS prüfen. Ein Rollenwechsel oder entzogenes Statistik-Leserecht beendet auch die App-Sitzung.
+- **Login funktioniert nicht:** Konto aktiv, Rolle JuZ.io Team, richtiges Passwort/OTP; `.env.local` und CMS prüfen. Ein Rollenwechsel oder entzogenes Statistik-Leserecht beendet auch die App-Sitzung.
 - **Cookies fehlen:** Bei lokalem HTTP `APP_SECURE_COOKIES=false`; im Browser Cookies zulassen. Für HTTPS eine geprüfte Konfiguration verwenden.
 - **Directus nicht erreichbar:** Containerstatus und lokale Portbindung prüfen. Logs nur intern ansehen; sie können technische Daten enthalten.
 - **Abstimmung mehrfach/gar nicht möglich:** Öffnungszeit, aktives Angebot und aktuellen Mitarbeitercode prüfen. Ein Code gilt zehn Sekunden und einmal; Browser und IP sperren keine weiteren Stimmen mit neuen Codes.

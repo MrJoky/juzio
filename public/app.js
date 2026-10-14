@@ -52,6 +52,6 @@ window.addEventListener('pageshow', (event) => {
 
 init().catch((error) => {
   app.innerHTML =
-    heading('Juze', 'Gerade nicht erreichbar', error.message) +
+    heading('JuZ.io', 'Gerade nicht erreichbar', error.message) +
     `<a class="primary-button" href="${esc(route)}">Erneut versuchen</a>`;
 });

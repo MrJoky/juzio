@@ -1,8 +1,9 @@
 import { randomUUID } from 'node:crypto';
+import { findOrRename } from './branding.mjs';
 
 export async function setupProductPriceSync(api) {
-  const name = 'Juze · Produktpreise in Verkäufen aktualisieren';
-  let flow = (await api(`/flows?filter[name][_eq]=${encodeURIComponent(name)}`))[0];
+  const name = 'JuZ.io · Produktpreise in Verkäufen aktualisieren';
+  let flow = await findOrRename(api, '/flows', name, 'Juze · Produktpreise in Verkäufen aktualisieren');
   if (flow) return;
   flow = await api('/flows', 'POST', {
     name, icon: 'price_change', status: 'inactive', trigger: 'event', accountability: 'all',

@@ -11,7 +11,7 @@ test('Directus: Teamlogin, Eintragung, Statistik, Verkauf, Abstimmung und Rechte
   async function item(collection,body){const r=await admin('/items/'+collection,'POST',body);cleanup.push(()=>admin(`/items/${collection}/${r.id}`,'DELETE'));return r;}
   let server;
   try {
-    const role=(await admin('/roles?filter[name][_eq]=Juze%20Team'))[0];
+    const role=(await admin('/roles?filter[name][_eq]=JuZ.io%20Team'))[0];
     const user=await admin('/users','POST',{email:`test-${suffix}@example.org`,password,role:role.id,status:'active'});cleanup.push(()=>admin('/users/'+user.id,'DELETE'));
     const room=await item('rooms',{name:'Integrationstest',active:true});
     const product=await item('products',{name:'Integrationstest',price_cents:175,active:true});

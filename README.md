@@ -1,4 +1,6 @@
-# Juze · Lokal im Jugendzentrum
+# JuZ.io
+
+**Mehr Zeit für Jugendarbeit.**
 
 Raumeintragung, Besucherstatistik, Thekenverkauf und Angebotsabstimmung mit lokalem Directus-CMS. Der Laptop ist der Server; Handys greifen im Haus-WLAN darauf zu. Die Geschäftsdaten liegen lokal. Die aktivierte Directus-Lizenz benötigt externe Lizenz- und Telemetrieverbindungen.
 
@@ -52,7 +54,7 @@ Ohne Login enthält die Navigation nur Raumeintragung und Login. Die öffentlich
 ## Kollegen und Inhalte in Directus
 
 1. Am Laptop das CMS öffnen und als Admin anmelden.
-2. Unter **Benutzerverwaltung** einen Benutzer mit gültiger E-Mail-Adresse und Passwort anlegen, Status **Aktiv**, Rolle **Juze Team**. Eine echte zustellbare Adresse ist für den lokalen Passwortlogin nicht notwendig, das E-Mail-Format muss Directus akzeptieren. Die Anlage funktioniert ohne Mailversand.
+2. Unter **Benutzerverwaltung** einen Benutzer mit gültiger E-Mail-Adresse und Passwort anlegen, Status **Aktiv**, Rolle **JuZ.io Team**. Eine echte zustellbare Adresse ist für den lokalen Passwortlogin nicht notwendig, das E-Mail-Format muss Directus akzeptieren. Die Anlage funktioniert ohne Mailversand.
 3. Kollegen melden sich unter `/login` mit diesen persönlichen Daten an. Bei aktivierter Zwei-Faktor-Anmeldung zusätzlich den Einmalcode eingeben.
 
 Die automatisch erzeugte Formular-Servicekennung ist nur für die App bestimmt und erhält keinen Teamzugriff. Kollegen benötigen keine Administratorrechte. Directus selbst ist nur am Server-Laptop erreichbar.

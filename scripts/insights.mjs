@@ -25,7 +25,7 @@ const series = (name, collection, dateField, valueField, fn, y, filter = {}) => 
 
 export const insightDashboards = [
   {
-    key: 'visitors', name: 'Juze · Besucher', icon: 'groups', color: '#2196F3',
+    key: 'visitors', name: 'JuZ.io · Besucher', icon: 'groups', color: '#2196F3',
     note: 'Besuche, keine eindeutig identifizierten Personen. Mengen werden summiert. Kennzahlen und Balken: gesamter Bestand, außer ausdrücklich anders benannt.',
     panels: [
       metric('Erfasste Besuche · gesamt', 'visitor_statistics', 'quantity', 'sum', 0),
@@ -37,7 +37,7 @@ export const insightDashboards = [
     ]
   },
   {
-    key: 'rooms', name: 'Juze · Raumnutzung', icon: 'meeting_room', color: '#00A896',
+    key: 'rooms', name: 'JuZ.io · Raumnutzung', icon: 'meeting_room', color: '#00A896',
     note: 'Gezählt werden Raumeintragungen, keine Personen, Gäste oder Nutzungsstunden. Keine Namen oder Gästelisten in den Diagrammen.',
     panels: [
       metric('Raumeintragungen · gesamt', 'room_entries', 'id', 'count', 0),
@@ -48,7 +48,7 @@ export const insightDashboards = [
     ]
   },
   {
-    key: 'counter', name: 'Juze · Theke', icon: 'point_of_sale', color: '#FF9800',
+    key: 'counter', name: 'JuZ.io · Theke', icon: 'point_of_sale', color: '#FF9800',
     note: 'Stückzahlen, keine Eurobeträge. Ware, ausgegebenes Pfand und Rückgaben werden getrennt gezählt. Geldbeträge und Kassenbewegung stehen in der Thekenübersicht der App.',
     panels: [
       metric('Verkaufte Artikel · gesamt', 'sales', 'quantity', 'sum', 0, saleFilter),
@@ -59,7 +59,7 @@ export const insightDashboards = [
     ]
   },
   {
-    key: 'polls', name: 'Juze · Abstimmungen', icon: 'how_to_vote', color: '#9C27B0',
+    key: 'polls', name: 'JuZ.io · Abstimmungen', icon: 'how_to_vote', color: '#9C27B0',
     note: 'Gezählt werden gespeicherte Stimmen, keine eindeutig identifizierten Personen. Die Angebotsgrafik zeigt Stimmen aus als aktiv markierten Abstimmungen; gleiche Angebotsnamen können zu verschiedenen Abstimmungen gehören.',
     panels: [
       metric('Abgegebene Stimmen · gesamt', 'votes', 'id', 'count', 0),
@@ -87,10 +87,13 @@ export const insightDashboards = [
 }) }));
 
 export async function setupInsights(api, staffPolicy) {
-  const dashboards = new Set((await api('/dashboards?limit=-1')).map(d => d.id));
+  const dashboards = new Map((await api('/dashboards?limit=-1')).map(d => [d.id, d]));
   const panels = new Map((await api('/panels?limit=-1')).map(p => [p.id, p]));
   for (const { key, panels: definitions, ...dashboard } of insightDashboards) {
     if (!dashboards.has(dashboard.id)) await api('/dashboards', 'POST', dashboard);
+    else if (dashboards.get(dashboard.id).name === dashboard.name.replace('JuZ.io', 'Juze')) {
+      await api(`/dashboards/${dashboard.id}`, 'PATCH', { name: dashboard.name });
+    }
     const missing = definitions.filter(p => !panels.has(p.id));
     if (missing.length) await api('/panels', 'POST', missing);
     for (const panel of definitions) {

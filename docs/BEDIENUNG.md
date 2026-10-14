@@ -20,6 +20,17 @@ Die Liste fasst nach Tag, Alter und Geschlecht zusammen; verschiedene Uhrzeiten 
 
 Datum und Zeitraumfilter gelten auch für die Summen und den CSV-Export. Vollständige Einzelkorrekturen können berechtigte Personen in der Sammlung `visitor_statistics` in Directus vornehmen.
 
+## Auswertungsgrafiken in Directus
+
+Unter **Insights** auf http://localhost:8056 stehen dem Team vier Dashboards zur Verfügung:
+
+- **Juze · Besucher:** erfasste Besuchsmengen insgesamt und in den letzten 30 Tagen, Tagesverlauf über drei Monate sowie Alters- und Geschlechtsverteilung.
+- **Juze · Raumnutzung:** Anzahl der Raumeintragungen insgesamt, in den letzten 30 Tagen, pro Tag und pro Raum. Das sind Eintragungen, keine Personen oder Nutzungsstunden.
+- **Juze · Theke:** verkaufte Artikel und ausgegebenes/zurückgenommenes Pfand in Stück, Tagesverlauf und Produktvergleich. Geldbeträge und Kassenbewegung stehen weiterhin in der Thekenübersicht der App.
+- **Juze · Abstimmungen:** Stimmen insgesamt und in den letzten 30 Tagen, Verlauf, Vergleich je Abstimmung und Angebote aus als aktiv markierten Abstimmungen.
+
+Kennzahlen und Balkendiagramme beziehen sich auf den gesamten gespeicherten Bestand, sofern im Titel kein anderer Zeitraum steht. Besuchs- und Verkaufsmengen werden summiert; Abstimmungen zählen gespeicherte Stimmen. Lücken im Tagesverlauf bedeuten fehlende Einträge. Das Team darf die Dashboards ansehen; Bearbeitung erfolgt durch den Admin. Das Setup ergänzt fehlende Vorlagen, erhält aber Änderungen an vorhandenen Panels und legt keine Duplikate an.
+
 ## Theke, Verkauf und Pfand
 
 Produkte und Warenpreise werden in Directus in `products` gepflegt. `price_cents` ist der Warenpreis in Cent: 150 bedeutet 1,50 €. `active` zeigt das Produkt in der Theke an. Menge auswählen und **Verkauf buchen** wählen. Eine Warenpreisänderung aktualisiert auch alle früheren Waren-Verkaufseinträge dieses Produkts und die darauf beruhenden Summen und CSV-Exporte. In der Theke anschließend **Aktualisieren** wählen. Pfand und Rückzahlungen behalten ihre gebuchten Beträge.

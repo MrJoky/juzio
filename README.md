@@ -82,6 +82,10 @@ In der **Raumliste** öffnet „Bearbeiten“ ein Formular für Datum, Uhrzeit, 
 
 Änderungen an `products.price_cents` aktualisieren über einen Directus-Flow alle verknüpften Waren-Verkaufseinträge, auch rückwirkend. Einzelbeträge, Warenumsatz, Kassenbewegung und CSV-Summen verwenden diese aktualisierten Preise. In der Theke nach einer CMS-Änderung **Aktualisieren** wählen. Pfandpositionen und Rückgaben behalten ihren gebuchten Betrag; Einträge ohne Produktverknüpfung bleiben unverändert. Es gibt keinen täglichen Zählerreset; der Zeitraumfilter zeigt Tagesumsätze und frühere Verkäufe. Besucherstatistik zählt erfasste Besuche, keine eindeutig identifizierten Personen. Raumeintragungen und Besucherstatistik werden getrennt erfasst. CSV-Exporte stehen auf den jeweiligen Teamseiten zur Verfügung.
 
+## Insights in Directus
+
+Unter **Insights** im CMS stehen vier Team-Dashboards mit 22 Kennzahlen und Diagrammen bereit: **Besucher**, **Raumnutzung**, **Theke** und **Abstimmungen**. Besuchs- und Verkaufsmengen werden summiert; Raumeintragungen und Stimmen werden gezählt. Die Thekencharts zeigen Stückzahlen; Geldbeträge bleiben in der App. Zeiträume stehen in den Paneltiteln. Das Setup ergänzt fehlende Panels ohne bestehende Einstellungen zu überschreiben. Details: [Bedienung](docs/BEDIENUNG.md).
+
 ## WLAN und QR-Codes
 
 Im Team unter **QR-Codes** die Links für Raumeintragung und Abstimmung anzeigen und ausdrucken. Container-Bridges und bekannte VPN-Schnittstellen werden ausgeblendet. Bei mehreren Netzwerkschnittstellen entstehen Codes für mehrere IP-Adressen: die WLAN-Adresse wählen. Optional in `.env.local` die feste Adresse konfigurieren:

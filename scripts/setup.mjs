@@ -2,6 +2,7 @@ import { privacyTemplate } from './privacy-template.mjs';
 import { directus } from './directus.mjs';
 import { organizeCollections } from './collection-navigation.mjs';
 import { setupProductPriceSync } from './product-price-sync.mjs';
+import { setupInsights } from './insights.mjs';
 let token = process.env.DIRECTUS_ADMIN_TOKEN;
 if (!token || !process.env.PUBLIC_SERVICE_TOKEN) throw new Error('Bitte ./start.sh verwenden.');
 const api = (url, method = 'GET', body) => directus(url, { token, method, body });
@@ -68,6 +69,7 @@ async function permission(policyId, collection, action, fields = ['*'], filter =
   else if (collection === 'votes' && action === 'read' && !fields.every(f => found[0].fields.includes(f))) await api(`/permissions/${found[0].id}`, 'PATCH', { fields });
 }
 const staffPolicy = await policy('Juze Team', true);
+await setupInsights(api, staffPolicy);
 for (const c of Object.keys(schemas)) {
   await permission(staffPolicy, c, 'read', c === 'votes' ? ['id', 'poll', 'option', 'created_at'] : ['*']);
   if (!['votes','privacy_pages'].includes(c)) for (const a of ['create', 'update', 'delete']) await permission(staffPolicy, c, a);

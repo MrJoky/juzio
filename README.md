@@ -84,7 +84,7 @@ In der **Raumliste** öffnet „Bearbeiten“ ein Formular für Datum, Uhrzeit, 
 
 ## Insights in Directus
 
-Unter **Insights** im CMS stehen vier Team-Dashboards mit 22 Kennzahlen und Diagrammen bereit: **Besucher**, **Raumnutzung**, **Theke** und **Abstimmungen**. Besuchs- und Verkaufsmengen werden summiert; Raumeintragungen und Stimmen werden gezählt. Die Thekencharts zeigen Stückzahlen; Geldbeträge bleiben in der App. Zeiträume stehen in den Paneltiteln. Das Setup ergänzt fehlende Panels ohne bestehende Einstellungen zu überschreiben. Details: [Bedienung](docs/BEDIENUNG.md).
+Unter **Insights** im CMS stehen vier Team-Dashboards mit 22 Kennzahlen und Diagrammen bereit: **Besucher**, **Raumnutzung**, **Theke** und **Abstimmungen**. Besuchs- und Verkaufsmengen werden summiert; Raumeintragungen und Stimmen werden gezählt. Die Thekencharts zeigen Stückzahlen; Geldbeträge bleiben in der App. Zeiträume stehen in den Paneltiteln. Das Setup ergänzt fehlende Panels und erhält eigene Einstellungen; die fehlerhafte ursprüngliche Rasteranordnung wird automatisch repariert. Details: [Bedienung](docs/BEDIENUNG.md).
 
 ## WLAN und QR-Codes
 

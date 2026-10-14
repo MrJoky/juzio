@@ -24,12 +24,12 @@ Datum und Zeitraumfilter gelten auch für die Summen und den CSV-Export. Vollst�
 
 Unter **Insights** auf http://localhost:8056 stehen dem Team vier Dashboards zur Verfügung:
 
-- **Juze · Besucher:** erfasste Besuchsmengen insgesamt und in den letzten 30 Tagen, Tagesverlauf über drei Monate sowie Alters- und Geschlechtsverteilung.
+- **Juze · Besucher:** erfasste Besuchsmengen insgesamt und in den letzten 30 Tagen, Anzahl der Statistikeinträge mit Besuchern, Tagesverlauf über drei Monate sowie Alters- und Geschlechtsverteilung.
 - **Juze · Raumnutzung:** Anzahl der Raumeintragungen insgesamt, in den letzten 30 Tagen, pro Tag und pro Raum. Das sind Eintragungen, keine Personen oder Nutzungsstunden.
 - **Juze · Theke:** verkaufte Artikel und ausgegebenes/zurückgenommenes Pfand in Stück, Tagesverlauf und Produktvergleich. Geldbeträge und Kassenbewegung stehen weiterhin in der Thekenübersicht der App.
 - **Juze · Abstimmungen:** Stimmen insgesamt und in den letzten 30 Tagen, Verlauf, Vergleich je Abstimmung und Angebote aus als aktiv markierten Abstimmungen.
 
-Kennzahlen und Balkendiagramme beziehen sich auf den gesamten gespeicherten Bestand, sofern im Titel kein anderer Zeitraum steht. Besuchs- und Verkaufsmengen werden summiert; Abstimmungen zählen gespeicherte Stimmen. Lücken im Tagesverlauf bedeuten fehlende Einträge. Das Team darf die Dashboards ansehen; Bearbeitung erfolgt durch den Admin. Das Setup ergänzt fehlende Vorlagen, erhält aber Änderungen an vorhandenen Panels und legt keine Duplikate an.
+Kennzahlen und Balkendiagramme beziehen sich auf den gesamten gespeicherten Bestand, sofern im Titel kein anderer Zeitraum steht. Besuchs- und Verkaufsmengen werden summiert; Abstimmungen zählen gespeicherte Stimmen. Lücken im Tagesverlauf bedeuten fehlende Einträge. Das Team darf die Dashboards ansehen; Bearbeitung erfolgt durch den Admin. Das Setup ergänzt fehlende Vorlagen und legt keine Duplikate an. Die ursprünglich fehlerhaften Rasterpositionen ab 0 werden einmalig auf das Directus-Raster ab 1 mit lesbaren Größen und Abständen korrigiert. Eigene Layouts und Paneloptionen bleiben erhalten. Die frühere Besuchstage-Kachel wird wegen einer Directus-Datumsformatierung durch die numerisch korrekte Anzahl der Statistikeinträge mit Besuchern ersetzt.
 
 ## Theke, Verkauf und Pfand
 

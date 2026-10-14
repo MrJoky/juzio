@@ -4,6 +4,61 @@ import { randomBytes, randomUUID } from 'node:crypto';
 import { directus } from '../scripts/directus.mjs';
 import { insightDashboards, setupInsights } from '../scripts/insights.mjs';
 
+test('Insights-Layouts verwenden gültige Rasterlinien, lesbare Breiten und überlappen sich nicht', () => {
+  for (const dashboard of insightDashboards) {
+    for (const panel of dashboard.panels) {
+      assert.ok(Number.isInteger(panel.position_x) && panel.position_x >= 1, panel.name);
+      assert.ok(Number.isInteger(panel.position_y) && panel.position_y >= 1, panel.name);
+      assert.ok(panel.width >= (panel.type === 'metric' ? 16 : 24), panel.name);
+      for (const other of dashboard.panels.filter(p => p.id !== panel.id)) {
+        const overlaps = panel.position_x < other.position_x + other.width &&
+          panel.position_x + panel.width > other.position_x &&
+          panel.position_y < other.position_y + other.height &&
+          panel.position_y + panel.height > other.position_y;
+        assert.equal(overlaps, false, `${panel.name} / ${other.name}`);
+      }
+    }
+  }
+});
+
+test('Insights repariert alte Rastermaße einmalig und erhält eigene Layouts und Paneloptionen', async () => {
+  const dashboard = insightDashboards[0];
+  const panels = structuredClone(dashboard.panels);
+  Object.assign(panels[0], { position_x: 0, position_y: 0, width: 12, height: 8, name: 'Eigener Titel' });
+  Object.assign(panels[1], { position_x: 6, position_y: 50, width: 24, height: 10 });
+  Object.assign(panels[2], { name: 'Tage mit erfassten Besuchen', options: {
+    ...panels[2].options, field: 'visit_date', function: 'countDistinct'
+  } });
+  const custom = structuredClone(panels[1]);
+  const originalOptions = structuredClone(panels[0].options);
+  const patches = [];
+  const api = async (url, method = 'GET', body) => {
+    if (url.startsWith('/dashboards')) return insightDashboards;
+    if (url === '/panels?limit=-1') return panels;
+    if (url.startsWith('/permissions')) return [{ id: 'existing-permission' }];
+    if (method === 'POST') return body;
+    if (method === 'PATCH') {
+      patches.push(body);
+      Object.assign(panels.find(p => p.id === url.split('/').pop()), body);
+      return;
+    }
+    throw new Error(`Unerwartete Anfrage: ${method} ${url}`);
+  };
+  await setupInsights(api, 'team');
+  assert.equal(patches.length, 2);
+  assert.equal(panels[0].position_x, 1);
+  assert.equal(panels[0].position_y, 1);
+  assert.equal(panels[0].width, 16);
+  assert.equal(panels[0].name, 'Eigener Titel');
+  assert.deepEqual(panels[0].options, originalOptions);
+  assert.deepEqual(panels[1], custom);
+  assert.equal(panels[2].options.field, 'id');
+  assert.equal(panels[2].options.function, 'count');
+  assert.equal(panels[2].name, 'Einträge mit Besuchern · gesamt');
+  await setupInsights(api, 'team');
+  assert.equal(patches.length, 2);
+});
+
 test('Insights: Team kann alle Diagramme lesen; Abfragen stimmen und Service bleibt ausgeschlossen', {
   skip: process.env.DIRECTUS_INTEGRATION !== '1'
 }, async () => {
@@ -41,6 +96,9 @@ test('Insights: Team kann alle Diagramme lesen; Abfragen stimmen und Service ble
         params.set('filter', JSON.stringify(filter));
         const rows = await team(`/items/${o.collection}?${params}`);
         assert.ok(Array.isArray(rows), panel.name);
+        if (saved.type === 'metric' && rows.length) {
+          assert.ok(Number.isFinite(Number(rows[0][fn][field])), `${panel.name}: numerische Kennzahl erwartet`);
+        }
         if (saved.type === 'metric' && fn === 'sum' && !Object.keys(filter).length) {
           const items = await team(`/items/${o.collection}?fields=${field}&limit=-1`);
           assert.equal(Number(rows[0].sum[field]), items.reduce((sum, row) => sum + Number(row[field] || 0), 0));

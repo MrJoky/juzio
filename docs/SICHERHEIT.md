@@ -1,5 +1,7 @@
 # Sicherheitsprüfung
 
+**Nachtrag Abstimmung:** Browser-, Cookie-, LocalStorage- und IP-Sperren entfernt. Neue Stimmen speichern nur Abstimmung, Auswahl und Zeitpunkt. Kurzlebige Einmalcodes und allgemeine Anfragelimits bleiben erhalten. Historische Kennungen werden nicht mehr ausgewertet; der Formularservice darf Stimmen nicht mehr lesen.
+
 **Nachtrag 14. Oktober 2026:** Produktiver Wechsel auf Directus 12.5.0 mit aktiver Open-Innovation-Grant-Lizenz abgeschlossen. Aktuelle Daten und Benutzer wurden nach Sicherung übernommen; alle 16 Tests bestanden vor dem Wechsel auf der lizenzierten Instanz. Der folgende Bericht beschreibt die historische Prüfung vom 9. Oktober; der damalige Updateblocker ist durch die Lizenzaktivierung aufgelöst. Lizenz und Telemetrie erfordern externe Verbindungen. Aktueller Betrieb: [Betriebsdokumentation](BETRIEB.md).
 
 Stand: 9. Oktober 2026. Geprüft wurden App-Code, Browserausgabe, Directus-Schema-/Rechteeinrichtung, Containerdefinitionen, Abhängigkeiten und Git-Dateien. Das ist eine nachvollziehbare Code- und Konfigurationsprüfung mit Tests, kein vollständiger Penetrationstest oder Nachweis, dass alle möglichen Risiken ausgeschlossen sind. Eine Internetfreigabe erfolgt nicht.
@@ -18,7 +20,7 @@ Stand: 9. Oktober 2026. Geprüft wurden App-Code, Browserausgabe, Directus-Schem
 | Mittel, behoben | Datenschutztext könnte fremdes HTML/JS einbetten | Nur Klartext, HTML-Escaping und CSP. Admin bearbeitet; öffentliche Servicekennung darf ausschließlich festgelegten Datensatz lesen. |
 | Mittel, behoben | App-Sitzung blieb bei entzogenem Teamrecht prinzipiell erhalten | Jede Sitzungsprüfung vergleicht die aktuelle Rolle und den Kontostatus mit der Anmeldung und prüft Statistik-Leseberechtigung. Rollenwechsel beendet die Sitzung auch bei noch gültigem JWT; 401/403 beendet sie ebenfalls. |
 | Niedrig, reduziert | Fehler könnten in Zukunft Formulardaten protokollieren | Unbekannte App-Fehler nur mit allgemeinem Text protokollieren; keine Requestinhalte. Directus-/OS-Logs separat kontrollieren. |
-| Datenschutz, reduziert | Abstimmungs-Cookie ein Jahr gültig | Neue Cookies 30 Tage. Bereits ausgestellte Cookies können bis zu ihrem bisherigen Ablauf bestehen bleiben. LocalStorage-Markierungen bleiben bis zum Löschen der Browserdaten. |
+| Datenschutz, aktualisiert | Frühere Browser-/IP-Sperren der Abstimmung | Keine neuen Abstimmungs-Cookies oder LocalStorage-Markierungen; neue Stimmen ohne Browser-/Netzwerkkennung. Alte Werte werden nicht mehr ausgewertet. |
 | Repository, reduziert | Versehentlicher Commit von Daten/Geheimnissen | Ignore-Regeln für Umgebungsdateien, Datenbanken, Backups, CSV und Schlüssel erweitert; aktuelle Geheimniswerte gegen getrackte Dateien und Git-Historie geprüft. |
 
 ## Directus-Hinweise
@@ -40,11 +42,11 @@ Diese Eingrenzung ersetzt das Sicherheitsupdate nicht. [Herstellerübersicht](ht
 - HttpOnly/SameSite=Strict, Cache-Control no-store, CSP, nosniff, Frame-Sperre und Permissions-Policy.
 - Browserwerte und Backendinhalte werden bei der HTML-Ausgabe escaped; CSV-Formeln werden vor dem Export entschärft.
 - Verkäufe haben eindeutige Wiederholungsschlüssel; Ware/Pfand werden gemeinsam in einer Transaktion gespeichert. Pfandrückgaben sind negative Buchungen und ebenfalls gegen wiederholte Requests geschützt.
-- Stimmen haben eindeutige Browser-/IP-Kennungen sowie kurzlebige Einmalcodes. Änderungen an Mengen werden im einzelnen App-Prozess nacheinander verarbeitet.
+- Stimmen werden durch kurzlebige, einmal verwendbare Mitarbeitercodes freigegeben. Änderungen an Mengen werden im einzelnen App-Prozess nacheinander verarbeitet.
 
 ## Verbleibende Betriebs- und Fachrisiken
 
-Teammitglieder sind vertrauenswürdige Bearbeiter und können im CMS operative Daten verändern/löschen. Das ist kein manipulationssicheres Kassenjournal. Pfandrückgaben prüfen keine vorherige konkrete Ausgabe. Mengenänderungen und Mitarbeitercodes sind nur für einen App-Prozess ausgelegt. Shared-IP, neue IP oder gelöschte Browserdaten beeinträchtigen die Stimmerkennung; Codes ersetzen keine Personenidentifikation.
+Teammitglieder sind vertrauenswürdige Bearbeiter und können im CMS operative Daten verändern/löschen. Das ist kein manipulationssicheres Kassenjournal. Pfandrückgaben prüfen keine vorherige konkrete Ausgabe. Mengenänderungen und Mitarbeitercodes sind nur für einen App-Prozess ausgelegt. Mit jedem neuen gültigen Code ist eine weitere Stimme möglich, auch am selben Gerät. Codes ersetzen keine Personenidentifikation.
 
 Das Admin-Token und der Formularservice-Token sind lokale Geheimnisse. Rechnerzugriff, Container-Engine und Datenbankkopien können diese schützen oder kompromittieren. Schwache Team-Passwörter, geteilte Konten, verlorene Laptops, unsichere CSV-Dateien und ungeschützte Backups sind durch App-Code nicht ausgeschlossen. Admins sollten 2FA nutzen. Ein lokaler Dienst an 127.0.0.1 kann von anderen Programmen am Rechner erreicht werden; Loopback ersetzt keine Updates.
 

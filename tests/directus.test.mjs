@@ -120,23 +120,29 @@ test('Directus: Teamlogin, Eintragung, Statistik, Verkauf, Abstimmung und Rechte
     const unpublished=await item('privacy_pages',{slug:'internal-'+suffix,title:'Intern',content:'Nicht öffentlich',status:'draft'});
     assert.equal((await directus('/items/privacy_pages',{token:process.env.PUBLIC_SERVICE_TOKEN})).some(p=>p.slug===unpublished.slug),false);
     const beforeVote=await req('/api/polls');
-    assert.equal(beforeVote.data.find(p=>p.id===poll.id).voted,false);
+    assert.equal(beforeVote.r.headers.get('set-cookie'),null);
     const voter=beforeVote.cookie;
-    assert.match(voter,/^juze_voter=[a-f0-9]{64}$/);
+    assert.equal(voter,undefined);
     const code=async()=> (await req('/api/staff/vote-codes',null,staff)).data.find(c=>c.poll===poll.id).code;
     assert.equal((await req('/api/vote',{poll:poll.id,option:option.id},voter)).r.status,403);
     const vote=await req('/api/vote',{poll:poll.id,option:option.id,code:await code()},voter);assert.equal(vote.r.status,201,JSON.stringify(vote.data));
     const votes=await admin(`/items/votes?filter[poll][_eq]=${poll.id}`);assert.equal(votes.length,1);cleanup.push(()=>admin('/items/votes/'+votes[0].id,'DELETE'));
-    assert.equal((await req('/api/vote',{poll:poll.id,option:option.id,code:await code()},voter)).r.status,409);
-    assert.equal((await req('/api/polls',null,voter)).data.find(p=>p.id===poll.id).voted,true);
-    const anotherBrowser=await req('/api/polls');
-    assert.equal(anotherBrowser.data.find(p=>p.id===poll.id).voted,true);
-    assert.equal((await req('/api/vote',{poll:poll.id,option:option.id,code:await code()},anotherBrowser.cookie)).r.status,409);
-    const results=(await req('/api/staff/polls',null,staff)).data.find(p=>p.id===poll.id);assert.equal(results.total,1);assert.equal(results.options[0].count,1);
+    const usedCode=await code();
+    const concurrent=await Promise.all([
+      req('/api/vote',{poll:poll.id,option:option.id,code:usedCode},'juze_voter=old'),
+      req('/api/vote',{poll:poll.id,option:option.id,code:usedCode})
+    ]);
+    assert.deepEqual(concurrent.map(r=>r.r.status).sort(),[201,403]);
+    assert.equal((await req('/api/vote',{poll:poll.id,option:option.id,code:usedCode})).r.status,403);
+    const allVotes=await admin(`/items/votes?filter[poll][_eq]=${poll.id}`);
+    for(const v of allVotes.filter(v=>v.id!==votes[0].id))cleanup.push(()=>admin('/items/votes/'+v.id,'DELETE'));
+    assert.equal(allVotes.length,2);
+    assert.ok(allVotes.every(v=>!v.voter_key&&!v.network_key));
+    assert.equal(Object.hasOwn((await req('/api/polls')).data.find(p=>p.id===poll.id),'voted'),false);
+    const results=(await req('/api/staff/polls',null,staff)).data.find(p=>p.id===poll.id);assert.equal(results.total,2);assert.equal(results.options[0].count,2);
     const links=await req('/api/staff/links',null,staff);assert.equal(links.r.status,200);assert.ok(links.data.links[0].qr.startsWith('data:image/png;base64,'));
     await assert.rejects(()=>directus('/items/room_entries',{token:process.env.PUBLIC_SERVICE_TOKEN}),e=>e.status===403);
-    const statusKeys=await directus('/items/votes?limit=1',{token:process.env.PUBLIC_SERVICE_TOKEN});
-    assert.ok(statusKeys.every(row=>Object.keys(row).every(key=>['voter_key','network_key'].includes(key))));
+    await assert.rejects(()=>directus('/items/votes?limit=1',{token:process.env.PUBLIC_SERVICE_TOKEN}),e=>e.status===403);
     await admin('/items/polls/'+poll.id,'PATCH',{active:false});assert.equal((await req('/api/vote',{poll:poll.id,option:option.id,code:'000000'},voter)).r.status,400);
     await admin('/users/'+user.id,'PATCH',{role:null});
     assert.equal((await req('/api/me',null,staff)).data.user,null);

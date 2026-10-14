@@ -34,7 +34,7 @@ Die Übersicht trennt Warenumsatz, Pfandeinnahmen, Pfandrückzahlungen und Artik
 
 In Directus eine Abstimmung unter `polls` anlegen: Titel, Beschreibung, Woche, `active`, optional Start und Ende. Angebote unter `poll_options` anlegen, der Abstimmung zuordnen und aktivieren. Für eine neue Woche eine neue Abstimmung anlegen.
 
-Jugendliche öffnen den QR-Link, wählen ein Angebot und fragen euch direkt vor dem Absenden nach dem sechsstelligen Code. Unter **Abstimmung** sieht das Team Ergebnisse und Code mit Countdown. Ein Code gilt zehn Sekunden und nur für eine Stimme. Danach erscheint ein neuer Code. Die bisherigen Browser- und IP-Sperren gelten zusätzlich. Gebt einer Person nur einmal einen Code; wechselnde Browserdaten und IP-Adressen können die technische Erkennung umgehen. Mehrere Geräte mit gleicher IP teilen sich die IP-Sperre. Ein Neustart verwirft die Codes und Team-Sitzungen, gespeicherte Stimmen bleiben bestehen.
+Jugendliche öffnen den QR-Link, wählen ein Angebot und fragen euch direkt vor dem Absenden nach dem sechsstelligen Code. Unter **Abstimmung** sieht das Team Ergebnisse und Code mit Countdown. Ein Code gilt zehn Sekunden und nur für eine Stimme. Danach erscheint ein neuer Code. Gebt einer Person nur einmal einen Code. Es gibt keine zusätzliche Browser- oder IP-Sperre; mit einem neuen gültigen Code kann auch dasselbe Gerät wieder abstimmen. Ein Neustart verwirft die Codes und Team-Sitzungen, gespeicherte Stimmen bleiben bestehen.
 
 ## QR-Codes
 

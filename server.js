@@ -1,4 +1,4 @@
-import { randomBytes, randomInt, createHash, createHmac } from 'node:crypto';
+import { randomBytes, randomInt } from 'node:crypto';
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { networkInterfaces } from 'node:os';
@@ -23,12 +23,6 @@ function date(value) { const d = text(value, 10); if (!/^\d{4}-\d{2}-\d{2}$/.tes
 function uuid(value) { if (typeof value !== 'string' || !/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(value)) fail(400, 'Ungültige Auswahl.'); return value; }
 function cookies(req) { return Object.fromEntries((req.headers.cookie || '').split(';').map(p => p.trim().split('='))); }
 function cookie(res, name, value, maxAge) { res.setHeader('Set-Cookie', `${name}=${value}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${maxAge}${process.env.APP_SECURE_COOKIES === 'true' ? '; Secure' : ''}`); }
-const voterKey = (poll, voter) => createHash('sha256').update(`${poll}:${voter}`).digest('hex');
-export function networkVoterKey(poll, address, secret = process.env.DIRECTUS_SECRET || publicToken) {
-  if (!address || !secret) fail(503,'Die Abstimmung ist gerade nicht verfügbar.');
-  const ip = address.toLowerCase().replace(/^::ffff:/,'');
-  return createHmac('sha256',secret).update(`vote-ip:${poll}:${ip}`).digest('hex');
-}
 async function body(req) {
   let raw = ''; for await (const chunk of req) { raw += chunk; if (Buffer.byteLength(raw) > 16384) fail(413, 'Eingabe zu groß.'); }
   let parsed;
@@ -165,34 +159,18 @@ export function createApp() {
         return json(res,201,{ok:true});
       }
       if (p === '/api/polls' && req.method === 'GET') {
-        let voter = cookies(req).juze_voter;
-        if (!/^[a-f0-9]{64}$/.test(voter || '')) {
-          voter = randomBytes(32).toString('hex');
-          cookie(res,'juze_voter',voter,2592000);
-        }
         const polls = await activePolls();
         const options = await directus('/items/poll_options?filter[active][_eq]=true&fields=id,poll,name,description&limit=-1',{token:publicToken});
-        const keys = polls.map(p => voterKey(p.id,voter));
-        const networkKeys = polls.map(p => networkVoterKey(p.id,req.socket.remoteAddress));
-        const votes = keys.length ? await directus(`/items/votes?filter[_or][0][voter_key][_in]=${keys.join(',')}&filter[_or][1][network_key][_in]=${networkKeys.join(',')}&fields=voter_key,network_key&limit=-1`,{token:publicToken}) : [];
-        const voted = new Set(votes.map(v => v.voter_key));
-        const networkVoted = new Set(votes.map(v => v.network_key));
-        return json(res,200,polls.map(p => ({id:p.id,title:p.title,description:p.description,week_of:p.week_of,ends_at:p.ends_at,voted:voted.has(voterKey(p.id,voter)) || networkVoted.has(networkVoterKey(p.id,req.socket.remoteAddress)),options:options.filter(o=>o.poll===p.id)})));
+        return json(res,200,polls.map(p => ({id:p.id,title:p.title,description:p.description,week_of:p.week_of,ends_at:p.ends_at,options:options.filter(o=>o.poll===p.id)})));
       }
       if (p === '/api/vote' && req.method === 'POST') {
-        const voter = cookies(req).juze_voter;
-        if (!/^[a-f0-9]{64}$/.test(voter || '')) fail(400,'Bitte Cookies für diese Seite erlauben und die Abstimmung neu laden. Deine Stimme wurde nicht gespeichert.');
-        rate(req, 'vote-code', 10);
         const b = await body(req); const poll = (await activePolls()).find(p=>p.id===uuid(b.poll));
         if (!poll) fail(400,'Diese Abstimmung ist nicht geöffnet.');
         const option = await directus(`/items/poll_options/${uuid(b.option)}`,{token:publicToken});
         if (!option.active) fail(400,'Dieses Angebot ist nicht mehr verfügbar.');
         if (option.poll !== poll.id) fail(400,'Angebot gehört nicht zu dieser Abstimmung.');
-        const voter_key = voterKey(poll.id,voter);
-        const network_key = networkVoterKey(poll.id,req.socket.remoteAddress);
         voteCodes.consume(poll.id,b.code);
-        try { await directus('/items/votes',{token:publicToken,method:'POST',body:{poll:poll.id,option:option.id,voter_key,network_key}}); }
-        catch(e) { if (e.code === 'RECORD_NOT_UNIQUE') fail(409,'Du hast für diese Abstimmung bereits abgestimmt.'); throw e; }
+        await directus('/items/votes',{token:publicToken,method:'POST',body:{poll:poll.id,option:option.id}});
         return json(res,201,{ok:true});
       }
       if (p.startsWith('/api/staff/') || protectedPages.has(p)) {

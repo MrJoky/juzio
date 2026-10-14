@@ -16,7 +16,7 @@ test('Öffentliche Seiten und Zugriffsschutz ohne Sitzung',async()=>{
     for (const cookie of ['', 'juze_voter=invalid']) {
       const response=await fetch(base+'/api/vote',{method:'POST',headers:{'Content-Type':'application/json',Origin:base,Cookie:cookie},body:'{}'});
       assert.equal(response.status,400);
-      assert.match((await response.json()).error,/Cookies/);
+      assert.match((await response.json()).error,/Ungültige Auswahl/);
       assert.equal(response.headers.get('set-cookie'),null);
     }
     assert.equal((await fetch(base+'/api/login',{method:'POST',headers:{'Content-Type':'application/json','Origin':'http://fremd.invalid'},body:'{}'})).status,403);

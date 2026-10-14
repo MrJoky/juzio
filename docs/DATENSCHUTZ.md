@@ -9,7 +9,7 @@ Prüfstand: 9. Oktober 2026. Die technische Umsetzung ist eine Grundlage für de
 | Raumliste | Vorname/Spitzname, weitere Gäste, Datum, Uhrzeit, Raum | Raumnutzung; Team und Admin |
 | Statistik | Datum, optionale Uhrzeit, Alter, Geschlecht, Anzahl, Notiz | Besuchszählung; Team und Admin |
 | Theke | Produkt, Menge, rückwirkend synchronisierter Warenpreis bzw. gebuchter Pfandbetrag, Zeitpunkt, buchende Mitarbeiter-ID, Wiederholungsschlüssel, Art der Position | Waren-, Pfand- und Rückzahlungsbuchung; Team und Admin |
-| Abstimmung | Poll, Auswahl, Zeitpunkt, SHA-256-Browserkennung, mit geheimem Schlüssel abgeleitete IP-Kennung | Abstimmung und Mehrfachstimmensperre; Team sieht Ergebnisse, App-Service nur Kennungen |
+| Abstimmung | Poll, Auswahl, Zeitpunkt; bei älteren Stimmen ggf. nicht mehr genutzte Browser-/Netzwerkkennungen | Abstimmung mit kurzlebigen Einmalcodes; Team sieht Ergebnisse, App-Service darf Stimmen nicht lesen |
 | Teamkonto | E-Mail, Vorname, Passwort-Hash, Rolle, Directus-Sitzungen | Anmeldung und Berechtigungen; Admin und jeweiliges Konto |
 | Datenschutzhinweise | Freigegebener Text, Titel, Status, Änderungszeit | Information; öffentlich lesbar, Admin bearbeitet |
 | Betriebsdaten | Directus-Aktivitäten/Revisionen, möglicherweise IP und Änderungen; technische Logs | Administration; Admin/Systemverantwortliche |
@@ -18,11 +18,11 @@ Geschäftsdaten liegen in Directus/SQLite in lokalen Container-Volumes. Exporte 
 
 ## Browser und kurzfristige Daten
 
+Abstimmungen verwenden keine Cookies oder LocalStorage-Markierungen mehr. Früher gesetzte Werte werden nicht mehr ausgewertet und können im Browser verbleiben, bis sie ablaufen oder gelöscht werden. Neue Stimmen enthalten keine Browser- oder IP-Kennung.
+
 | Speicherung | Dauer | Inhalt |
 | --- | --- | --- |
 | `juze_session`, HttpOnly/SameSite=Strict | höchstens 8 Stunden | zufällige Team-Sitzungskennung; Server verliert Sitzungen beim Neustart |
-| `juze_voter`, HttpOnly/SameSite=Strict | 30 Tage ab Ausgabe | zufällige Abstimmungskennung |
-| LocalStorage `juze-voted:<ID>` | bis Browserdaten gelöscht werden | Markierung „bereits abgestimmt“; kein Ablauf implementiert |
 | Anfragebegrenzung im App-RAM | etwa 1 Minute, Bereinigung alle 60 Sekunden | IP, Kategorie, Anzahl |
 | Mitarbeitercode im App-RAM | 10 Sekunden Gültigkeit; nach Ablauf erneuert, bis Bereinigung/Neustart ggf. im RAM | zufälliger Code je Poll; keine dauerhafte Speicherung |
 

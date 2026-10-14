@@ -16,7 +16,7 @@ Seit 14. Oktober 2026 läuft **Directus 12.5.0 mit aktiver Open-Innovation-Grant
 | `DIRECTUS_URL` | internes CMS-Ziel; Standard http://127.0.0.1:8056 |
 | `DIRECTUS_ADMIN_EMAIL`, `DIRECTUS_ADMIN_PASSWORD` | Erstadmin; Passwort später im CMS verwalten |
 | `DIRECTUS_ADMIN_TOKEN` | Setup-Schlüssel mit Adminrechten; ausschließlich serverseitig |
-| `DIRECTUS_SECRET` | Directus-Signierung und geheime Ableitung der IP-Stimmsperren; sicher aufbewahren |
+| `DIRECTUS_SECRET` | Directus-Signierung; sicher aufbewahren |
 | `PUBLIC_SERVICE_TOKEN` | interner Formularservice; niemals an den Browser weitergeben |
 | `PUBLIC_URL` | App-Adresse für QR-Codes und zugelassener Host; HTTP(S)-Origin ohne Pfad/Benutzerdaten |
 | `APP_SECURE_COOKIES` | `true` nur bei geprüftem HTTPS-Zugang; dann Cookies nur verschlüsselt versenden |
@@ -89,8 +89,8 @@ Integrationstests erstellen Testkonten und Datensätze und entfernen sie anschli
 - **Login funktioniert nicht:** Konto aktiv, Rolle Juze Team, richtiges Passwort/OTP; `.env.local` und CMS prüfen. Ein Rollenwechsel oder entzogenes Statistik-Leserecht beendet auch die App-Sitzung.
 - **Cookies fehlen:** Bei lokalem HTTP `APP_SECURE_COOKIES=false`; im Browser Cookies zulassen. Für HTTPS eine geprüfte Konfiguration verwenden.
 - **Directus nicht erreichbar:** Containerstatus und lokale Portbindung prüfen. Logs nur intern ansehen; sie können technische Daten enthalten.
-- **Abstimmung mehrfach/gar nicht möglich:** Netzwerk-IP, Cookies, bereits abgegebenen Status und Mitarbeitercode prüfen. Hinter NAT teilen Geräte möglicherweise eine Sperre; Proxybetrieb ist dafür nicht vorbereitet.
+- **Abstimmung mehrfach/gar nicht möglich:** Öffnungszeit, aktives Angebot und aktuellen Mitarbeitercode prüfen. Ein Code gilt zehn Sekunden und einmal; Browser und IP sperren keine weiteren Stimmen mit neuen Codes.
 
 ## Grenzen
 
-Ein einzelner lokaler App-Prozess ist vorgesehen. Mehrere App-Prozesse teilen weder Team-Sitzungen noch Mitarbeitercodes oder die Sperre paralleler Statistikänderungen. Kein Internetbetrieb ohne separate HTTPS-, Proxy-, Firewall- und Datenschutzplanung. Durch einen unverschlüsselten Proxy werden Geräte-IP und Sperren anders bewertet; Weiterleitungsheader werden absichtlich nicht vertraut.
+Ein einzelner lokaler App-Prozess ist vorgesehen. Mehrere App-Prozesse teilen weder Team-Sitzungen noch Mitarbeitercodes oder die Sperre paralleler Statistikänderungen. Kein Internetbetrieb ohne separate HTTPS-, Proxy-, Firewall- und Datenschutzplanung. Durch einen unverschlüsselten Proxy werden Geräte-IP und allgemeine Anfragelimits anders bewertet; Weiterleitungsheader werden absichtlich nicht vertraut.

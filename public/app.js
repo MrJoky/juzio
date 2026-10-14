@@ -178,37 +178,18 @@ async function salesPage() {
 }
 async function votePage() {
   const polls=await api('/api/polls');
-  app.innerHTML=heading('Deine Stimme zählt','Nächste Woche an der Theke','Was wünschst du dir? Pro Abstimmung kannst du einmal wählen. Die Datenschutzhinweise findest du unten. Frage das Team direkt vor dem Absenden nach dem aktuellen Mitarbeitercode.')+polls.map((p,i)=>`<form id="poll${i}" class="panel form-panel poll"><p class="eyebrow">${p.week_of?'Woche ab '+esc(dateText(p.week_of)):'Nächste Woche'}</p><h2>${esc(p.title)}</h2><p>${esc(p.description)}</p>${p.options.map(o=>`<label class="vote-option"><input type="radio" name="option" value="${esc(o.id)}" required><span><strong>${esc(o.name)}</strong><span class="option-description">${esc(o.description)}</span></span></label>`).join('')}<label>Mitarbeitercode<input name="code" type="text" inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6" autocomplete="off" placeholder="6-stelliger Code" required></label><p>Der Code gilt zehn Sekunden und nur für eine Stimme.</p><button type="submit" class="primary-button" ${p.options.length?'':'disabled'}>Meine Stimme abgeben</button><p role="status">${p.options.length?'':'Noch keine Angebote verfügbar.'}</p></form>`).join('');
+  app.innerHTML=heading('Deine Stimme zählt','Nächste Woche an der Theke','Was wünschst du dir? Die Datenschutzhinweise findest du unten. Frage das Team direkt vor dem Absenden nach dem aktuellen Mitarbeitercode.')+polls.map((p,i)=>`<form id="poll${i}" class="panel form-panel poll"><p class="eyebrow">${p.week_of?'Woche ab '+esc(dateText(p.week_of)):'Nächste Woche'}</p><h2>${esc(p.title)}</h2><p>${esc(p.description)}</p>${p.options.map(o=>`<label class="vote-option"><input type="radio" name="option" value="${esc(o.id)}" required><span><strong>${esc(o.name)}</strong><span class="option-description">${esc(o.description)}</span></span></label>`).join('')}<label>Mitarbeitercode<input name="code" type="text" inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6" autocomplete="off" placeholder="6-stelliger Code" required></label><p>Der Code gilt zehn Sekunden und nur für eine Stimme.</p><button type="submit" class="primary-button" ${p.options.length?'':'disabled'}>Meine Stimme abgeben</button><p role="status">${p.options.length?'':'Noch keine Angebote verfügbar.'}</p></form>`).join('');
   if(!polls.length) app.innerHTML+=empty('Momentan läuft keine Abstimmung. Schau später wieder vorbei.');
   polls.forEach((p,i)=>{
-    const form=document.querySelector('#poll'+i), key='juze-voted:'+p.id;
-    let voted=false, submitting=false;
-    const lock = message => {
-      voted=true;
-      form.querySelectorAll('input').forEach(input=>{input.disabled=true;});
-      form.querySelector('button').hidden=true;
-      form.querySelector('[role=status]').textContent=message;
-    };
-    const remember = message => {
-      try{localStorage.setItem(key,'1');}catch{}
-      lock(message);
-    };
-    if(p.voted)remember('Du hast bereits abgestimmt. Danke!');
-    try{if(localStorage.getItem(key))lock('Du hast bereits abgestimmt. Danke!');}catch{}
-    window.addEventListener('storage',event=>{
-      if(event.key===key && event.newValue)lock('Du hast bereits abgestimmt. Danke!');
-    });
+    const form=document.querySelector('#poll'+i);
+    let submitting=false;
     bindForm('poll'+i,async b=>{
-      try{if(localStorage.getItem(key))voted=true;}catch{}
-      if(voted){lock('Du hast bereits abgestimmt. Danke!');return;}
       if(submitting)return;
       submitting=true;
       try{
         await api('/api/vote',{poll:p.id,option:b.option,code:b.code});
-        remember('Danke! Deine Stimme ist gespeichert.');
-      }catch(e){
-        if(e.status===409)remember('Du hast bereits abgestimmt. Danke!');
-        else throw e;
+        form.elements.code.value='';
+        form.querySelector('[role=status]').textContent='Danke! Deine Stimme ist gespeichert.';
       }finally{submitting=false;}
     });
   });

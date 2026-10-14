@@ -32,13 +32,18 @@ const schemas = {
   sales: [field('kind', 'string', { default_value: 'sale' }), field('product', 'uuid'), field('product_name'), field('price_cents', 'integer'), field('quantity', 'integer'), field('staff', 'uuid'), field('request_key', 'string', { is_unique: true })],
   polls: [field('title'), field('description', 'text'), field('starts_at', 'timestamp'), field('ends_at', 'timestamp'), field('week_of', 'date'), field('active', 'boolean', { default_value: false })],
   poll_options: [field('poll', 'uuid'), field('name'), field('description', 'text'), field('active', 'boolean', { default_value: true })],
-  votes: [field('poll', 'uuid'), field('option', 'uuid'), field('voter_key', 'string', { is_unique: true }), field('network_key', 'string', { is_unique: true, is_nullable: true })]
+  votes: [field('poll', 'uuid'), field('option', 'uuid')]
 };
 const existing = new Set((await api('/collections')).map(c => c.collection));
 for (const [collection, fields] of Object.entries(schemas)) {
   if (!existing.has(collection)) await api('/collections', 'POST', { collection, meta: { icon: 'folder', note: 'Juze · lokal' }, schema: {}, fields: [id, ...fields, created] });
   const present = new Set((await api(`/fields/${collection}`)).map(f => f.field));
   for (const f of [id, ...fields, created]) if (!present.has(f.field)) await api(`/fields/${collection}`, 'POST', f);
+}
+// Alte Kennungen bleiben als Bestandsdaten erhalten, sind aber für neue Stimmen optional.
+const voteFields = await api('/fields/votes');
+for (const name of ['voter_key', 'network_key']) {
+  if (voteFields.some(f => f.field === name)) await api(`/fields/votes/${name}`, 'PATCH', { schema: { is_nullable: true }, meta: { hidden: true, required: false } });
 }
 await organizeCollections(api);
 await setupProductPriceSync(api);
@@ -76,8 +81,8 @@ const publicPolicy = await policy('Juze Formular-Service', false);
 for (const c of ['rooms', 'polls', 'poll_options']) await permission(publicPolicy, c, 'read', ['*'], { active: { _eq: true } });
 await permission(publicPolicy,'privacy_pages','read',['slug','title','content','status','updated_at'],{slug:{_eq:'datenschutz'}});
 for (const c of ['room_entries', 'votes']) await permission(publicPolicy, c, 'create');
-// Der App-Server liest gehashte Kennungen für den eigenen Browserstatus.
-await permission(publicPolicy, 'votes', 'read', ['voter_key', 'network_key']);
+// Ohne Browserstatus braucht der Formularservice keinen Lesezugriff auf Stimmen.
+for (const p of await api(`/permissions?filter[policy][_eq]=${publicPolicy}&filter[collection][_eq]=votes&filter[action][_eq]=read`)) await api(`/permissions/${p.id}`, 'DELETE');
 let service = (await api('/users?filter[email][_eq]=formular%40example.org'))[0];
 if (!service) service = await api('/users', 'POST', { email: 'formular@example.org', first_name: 'Formular-Service', token: process.env.PUBLIC_SERVICE_TOKEN, status: 'active' });
 else await api(`/users/${service.id}`, 'PATCH', { token: process.env.PUBLIC_SERVICE_TOKEN });

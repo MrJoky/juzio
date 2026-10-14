@@ -1,9 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { once } from 'node:events';
-import { readFileSync } from 'node:fs';
-import { runInNewContext } from 'node:vm';
 import { createApp, trustedHost, localUrls } from '../server.js';
+import { privacyPage } from '../public/pages/datenschutz.js';
 
 test('Hostprüfung blockiert fremde Domains und URL-Tricks',()=>{
   assert.equal(trustedHost('localhost:3000'),true);
@@ -11,12 +10,10 @@ test('Hostprüfung blockiert fremde Domains und URL-Tricks',()=>{
   for(const host of ['evil.example:3000','localhost.evil.example','evil@localhost','localhost/path','localhost?x=1'])assert.equal(trustedHost(host),false,host);
 });
 
-test('Öffentliche Datenschutzseite führt Backend-HTML nicht aus',async()=>{
-  const source=readFileSync(new URL('../public/app.js',import.meta.url),'utf8');
-  const escape=source.slice(source.indexOf('const esc ='),source.indexOf('const money ='));
-  const page=source.slice(source.indexOf('async function privacyPage()'),source.indexOf('async function init()'));
+test('Öffentliche Datenschutzseite führt Backend-HTML nicht aus',async(t)=>{
+  t.mock.method(globalThis,'fetch',async()=>new Response(JSON.stringify({title:'Datenschutz',status:'draft',content:'<img src=x onerror=alert(1)><script>alert(2)</script>'})));
   const app={innerHTML:''};
-  await runInNewContext(escape+page+';privacyPage()',{app,heading:()=>'',api:async()=>({title:'Datenschutz',status:'draft',content:'<img src=x onerror=alert(1)><script>alert(2)</script>'})});
+  await privacyPage(app);
   assert.ok(!app.innerHTML.includes('<script>'));
   assert.ok(!app.innerHTML.includes('<img'));
   assert.match(app.innerHTML,/&lt;script&gt;/);

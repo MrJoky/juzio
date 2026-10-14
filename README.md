@@ -4,6 +4,7 @@ Raumeintragung, Besucherstatistik, Thekenverkauf und Angebotsabstimmung mit loka
 
 ## Dokumentation
 
+- [Seitentexte und Frontend-Code](docs/FRONTEND.md): welche Seite in welcher Datei liegt und wo gemeinsame Bausteine bearbeitet werden.
 - [Bedienung aller Bereiche](docs/BEDIENUNG.md): Raumliste, Statistik, Verkauf/Pfand, Abstimmung, QR-Codes und Datenschutzseite.
 - [Betrieb und Wartung](docs/BETRIEB.md): Installation, Konfiguration, Backups und spätere Migration.
 - [Datenschutzorganisation](docs/DATENSCHUTZ.md): Datenverzeichnis, Platzhalter, Speicherungen und Löschung.

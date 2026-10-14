@@ -1,6 +1,7 @@
 import { randomBytes, randomInt } from 'node:crypto';
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
+import { readdirSync } from 'node:fs';
 import { networkInterfaces } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -16,6 +17,12 @@ const host = process.env.HOST || '0.0.0.0';
 const protectedPages = new Set(['/team', '/raumliste', '/statistik', '/theke', '/abstimmung-team', '/qr']);
 const pages = new Set(['/', '/login', '/abstimmung', '/datenschutz', ...protectedPages]);
 const assets = new Set(['/app.js', '/styles.css', '/manifest.json']);
+// Nur vorhandene Browsermodule in den öffentlichen Modulordnern ausliefern.
+for (const directory of ['lib', 'pages']) {
+  for (const entry of readdirSync(path.join(root, 'public', directory), { withFileTypes: true })) {
+    if (entry.isFile() && entry.name.endsWith('.js')) assets.add(`/${directory}/${entry.name}`);
+  }
+}
 function fail(status, message) { throw Object.assign(new Error(message), { status }); }
 function text(value, max = 120) { return String(value ?? '').trim().slice(0, max); }
 function integer(value, min, max) { const n = Number(value); if (!Number.isInteger(n) || n < min || n > max) fail(400, 'Bitte eine gültige Anzahl eingeben.'); return n; }

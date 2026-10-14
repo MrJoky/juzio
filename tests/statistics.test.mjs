@@ -1,9 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { runInNewContext } from 'node:vm';
-const source=readFileSync(new URL('../public/app.js',import.meta.url),'utf8');
-const summarize=runInNewContext(source.slice(source.indexOf('function summarizeStatistics('),source.indexOf('async function statsPage()'))+';summarizeStatistics');
+import { summarizeStatistics as summarize } from '../public/pages/statistik.js';
 test('Statistik bleibt unabhängig von Uhrzeit zusammengefasst und zählt Korrekturen',()=>{
   const row={visit_date:'2026-10-07',age_group:'12–15',gender:'divers'};
   const rows=[{...row,id:'a',quantity:4,visit_time:'16:00'},{...row,id:'b',quantity:2,visit_time:'15:00'},{...row,id:'c',quantity:0,visit_time:'16:00'}];

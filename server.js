@@ -164,9 +164,10 @@ export function createApp() {
         return json(res,200,polls.map(p => ({id:p.id,title:p.title,description:p.description,week_of:p.week_of,ends_at:p.ends_at,options:options.filter(o=>o.poll===p.id)})));
       }
       if (p === '/api/vote' && req.method === 'POST') {
-        const b = await body(req); const poll = (await activePolls()).find(p=>p.id===uuid(b.poll));
+        const b = await body(req), pollId = uuid(b.poll), optionId = uuid(b.option);
+        const poll = (await activePolls()).find(p=>p.id===pollId);
         if (!poll) fail(400,'Diese Abstimmung ist nicht geöffnet.');
-        const option = await directus(`/items/poll_options/${uuid(b.option)}`,{token:publicToken});
+        const option = await directus(`/items/poll_options/${optionId}`,{token:publicToken});
         if (!option.active) fail(400,'Dieses Angebot ist nicht mehr verfügbar.');
         if (option.poll !== poll.id) fail(400,'Angebot gehört nicht zu dieser Abstimmung.');
         voteCodes.consume(poll.id,b.code);

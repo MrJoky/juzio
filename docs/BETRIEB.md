@@ -82,11 +82,20 @@ Bei Docker Compose bleibt der Versionsvergleich als Schutz vor einer ungeprüfte
 
 ```bash
 npm test
-DIRECTUS_INTEGRATION=1 node --env-file=.env.local --test
+npm run test:installer
+npm run test:sandbox
 npm audit
 ```
 
-Integrationstests erstellen Testkonten und Datensätze und entfernen sie anschließend. Nicht parallel mit einer Datenbereinigung laufen lassen. Sie benötigen ein eingerichtetes, erreichbares CMS und `.env.local`. `npm audit` prüft nur die npm-Abhängigkeiten der App, nicht alle Containerpakete, Systempakete oder künftigen Schwachstellen.
+Die normalen Tests sind vom produktiven CMS getrennt. Die Sandbox erzeugt eine eigene frische Directus-Instanz und räumt sie wieder auf. Betriebssystemmatrix, Befehle und Lizenzgrenzen stehen in [Testumgebungen](TESTUMGEBUNG.md).
+
+Die vollständigen App-/Insights-Integrationstests benötigen ein bewusst ausgewähltes, separat eingerichtetes und passend lizenziertes Test-CMS. Dafür eine eigene, nicht versionierte `.env.integration` mit dessen `DIRECTUS_URL`, `DIRECTUS_ADMIN_TOKEN`, `PUBLIC_SERVICE_TOKEN` und `DIRECTUS_INTEGRATION=1` anlegen. Keine produktive `.env.local` übernehmen. Dann plattformübergreifend:
+
+```sh
+node --env-file=.env.integration --test --test-concurrency=1 tests/directus.test.mjs tests/insights.test.mjs
+```
+
+Diese Integrationstests erstellen Konten und Datensätze und entfernen sie anschließend. Nicht parallel mit einer Datenbereinigung laufen lassen. `npm audit` prüft nur die npm-Abhängigkeiten der App, nicht alle Containerpakete, Systempakete oder künftigen Schwachstellen.
 
 ## Häufige Probleme
 

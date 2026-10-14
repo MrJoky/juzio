@@ -84,6 +84,7 @@ Integrationstests erstellen Testkonten und Datensätze und entfernen sie anschli
 
 ## Häufige Probleme
 
+- **Port bereits belegt / address already in use:** Die App läuft möglicherweise bereits. `http://localhost:3000` öffnen oder die laufende Instanz mit Strg+C in ihrem Terminal beenden und anschließend `./start.sh` erneut ausführen. Bei abweichendem `PORT` die konfigurierte Portnummer verwenden.
 - **Handy erreicht die App nicht:** WLAN, Server-IP, Firewall, Port 3000 und Router-Isolation prüfen. Bei neuer IP QR-Codes neu drucken.
 - **Serveradresse nicht freigegeben:** tatsächliche Adresse in `PUBLIC_URL` setzen; DNS-Aliasse werden nicht automatisch akzeptiert.
 - **Login funktioniert nicht:** Konto aktiv, Rolle Juze Team, richtiges Passwort/OTP; `.env.local` und CMS prüfen. Ein Rollenwechsel oder entzogenes Statistik-Leserecht beendet auch die App-Sitzung.

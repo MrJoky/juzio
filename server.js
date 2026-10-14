@@ -272,5 +272,13 @@ export function createApp() {
 }
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   if (!publicToken) throw new Error('PUBLIC_SERVICE_TOKEN fehlt. Bitte ./start.sh verwenden.');
-  createApp().listen(port,host,()=>{ console.log(`Juze: http://localhost:${port}`); for(const url of localUrls()) console.log(`WLAN: ${url}`); });
+  const server = createApp();
+  server.on('error', error => {
+    if (error.code === 'EADDRINUSE') {
+      console.error(`Port ${port} ist bereits belegt. Falls Juze schon läuft, öffne http://localhost:${port}.`);
+      console.error('Für einen Neustart zuerst die laufende Instanz mit Strg+C in ihrem Terminal beenden.');
+    } else console.error(`Die App konnte nicht starten (${error.code || 'unbekannter Fehler'}).`);
+    process.exitCode = 1;
+  });
+  server.listen(port,host,()=>{ console.log(`Juze: http://localhost:${port}`); for(const url of localUrls()) console.log(`WLAN: ${url}`); });
 }

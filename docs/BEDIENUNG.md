@@ -22,7 +22,7 @@ Datum und Zeitraumfilter gelten auch für die Summen und den CSV-Export. Vollst�
 
 ## Theke, Verkauf und Pfand
 
-Produkte und Warenpreise werden in Directus in `products` gepflegt. `price_cents` ist der Warenpreis in Cent: 150 bedeutet 1,50 €. `active` zeigt das Produkt in der Theke an. Menge auswählen und **Verkauf buchen** wählen. Die Buchung merkt sich den Preis zu diesem Zeitpunkt; spätere Preisänderungen ändern alte Buchungen nicht.
+Produkte und Warenpreise werden in Directus in `products` gepflegt. `price_cents` ist der Warenpreis in Cent: 150 bedeutet 1,50 €. `active` zeigt das Produkt in der Theke an. Menge auswählen und **Verkauf buchen** wählen. Eine Warenpreisänderung aktualisiert auch alle früheren Waren-Verkaufseinträge dieses Produkts und die darauf beruhenden Summen und CSV-Exporte. In der Theke anschließend **Aktualisieren** wählen. Pfand und Rückzahlungen behalten ihre gebuchten Beträge.
 
 Bei **Pfand einstellen** am Produkt **Produkt mit Pfand** anhaken und den Pfandbetrag pro Stück in Euro eingeben. Der Warenpreis enthält kein Pfand. Beispiel: Zwei Getränke zu 1,50 € mit je 0,25 € Pfand ergeben zwei Positionen: Ware 3,00 € und Pfand 0,50 €, zusammen 3,50 €. Beide Positionen werden gemeinsam gespeichert.
 

@@ -246,7 +246,7 @@ export function createApp() {
         if (p === '/api/staff/sales') {
           if (req.method === 'GET') return json(res,200,await api('/items/sales?sort=-created_at&limit=-1'));
           const b = await body(req), request_key = uuid(b.request_key);
-          // Bei Wiederholung gelten die gespeicherten Preise und Pfandpositionen.
+          // Wiederholungen erzeugen keine zusätzlichen Waren- oder Pfandpositionen.
           const existing = await api(`/items/sales?filter[request_key][_eq]=${request_key}&limit=1`);
           if (existing.length) return json(res,201,{ok:true});
           const product = await api(`/items/products/${uuid(b.product)}`);

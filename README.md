@@ -63,7 +63,7 @@ Die automatisch erzeugte Formular-Servicekennung ist nur für die App bestimmt u
 | `room_entries` | Gespeicherte Raumeintragungen |
 | `visitor_statistics` | Besuchszählung mit Datum, Alter, Geschlecht, Anzahl und Notiz |
 | `products` | Thekenprodukte; `price_cents` ist der Preis in Cent, `active` steuert die Verkaufsauswahl |
-| `sales` | Einzelne Buchungen mit damaligem Preis, Menge und Mitarbeiter-ID |
+| `sales` | Einzelne Buchungen mit synchronisiertem Warenpreis, Menge und Mitarbeiter-ID |
 | `polls` | Titel, Beschreibung, gewünschte Woche und Zeitraum der Abstimmung |
 | `poll_options` | Angebote einer Abstimmung zuordnen |
 | `votes` | Gespeicherte Stimmen; Ergebnisse im Teambereich |
@@ -79,11 +79,11 @@ Die App muss wie vorgesehen direkt im Haus-WLAN erreichbar sein: Geräte mit der
 
 In der **Raumliste** öffnet „Bearbeiten“ ein Formular für Datum, Uhrzeit, Raum, Name und weitere Gäste. In der **Besucherstatistik** werden Einträge pro Tag, Altersgruppe und Geschlecht zusammengefasst. Die Uhrzeitspalte zeigt die erfassten Uhrzeiten der Gruppe. Mit ▲/▼ lässt sich die Anzahl direkt um eins erhöhen oder verringern; jeder Klick wird sofort gespeichert. Beim Verringern bleibt ein Eintrag mit null Besuchen erhalten. Das Formular oben dient weiterhin der Erfassung einschließlich Uhrzeit. Der CSV-Export enthält dieselben zusammengefassten Werte und Uhrzeiten. „Abbrechen“ verwirft Änderungen. Nach dem Speichern werden die Listen und Statistikwerte aktualisiert; CSV-Exporte berücksichtigen die Korrekturen. Bearbeiten ist ausschließlich für angemeldete Teammitglieder möglich.
 
-**Produkte mit Pfand:** Unter **Theke → Pfand einstellen** am Produkt „Produkt mit Pfand“ aktivieren und den Betrag pro Stück in Euro setzen (z. B. 0,25 €). Alternativ in Directus `has_deposit` aktivieren und `deposit_cents` in Cent pflegen. Der Produktpreis ist ohne Pfand. Beim Verkauf werden Ware und Pfand automatisch als zwei Positionen gemeinsam gespeichert, jeweils für die verkaufte Menge. Preise und Pfandbeträge bleiben für die damalige Buchung erhalten.
+**Produkte mit Pfand:** Unter **Theke → Pfand einstellen** am Produkt „Produkt mit Pfand“ aktivieren und den Betrag pro Stück in Euro setzen (z. B. 0,25 €). Alternativ in Directus `has_deposit` aktivieren und `deposit_cents` in Cent pflegen. Der Produktpreis ist ohne Pfand. Beim Verkauf werden Ware und Pfand automatisch als zwei Positionen gemeinsam gespeichert, jeweils für die verkaufte Menge. Warenpreisänderungen aktualisieren auch frühere Warenpositionen. Gebuchte Pfandbeträge bleiben erhalten.
 
 **Pfandrückgabe:** In der Theke unter „Pfand zurückzahlen“ Pfandbetrag und Anzahl zurückgegebener Behälter eingeben. Die Auszahlung wird als eigene negative Position gebucht; es werden keine alten Verkaufspositionen gelöscht. Rückgaben funktionieren auch an einem späteren Tag oder nach einer Produktpreisänderung; den tatsächlich ausgezahlten Pfandbetrag eingeben. Nicht zurückgegebenes Pfand bleibt als Einnahme stehen. Die Übersicht und der CSV-Export trennen Ware, Pfand und Rückgaben. „Kassenbewegung“ ist Warenumsatz plus Pfandeinnahmen minus Rückzahlungen im gewählten Zeitraum. Ein anfänglicher Kassenbestand und sonstige Bargeldbewegungen werden bisher nicht erfasst; der Wert ist deshalb die Veränderung aus diesen Buchungen, kein vollständiger Bargeldbestand.
 
-Verkäufe speichern den Preis zum Buchungszeitpunkt und bleiben bei späteren Produktpreisänderungen korrekt. Es gibt keinen täglichen Zählerreset; der Zeitraumfilter zeigt Tagesumsätze und frühere Verkäufe. Besucherstatistik zählt erfasste Besuche, keine eindeutig identifizierten Personen. Raumeintragungen und Besucherstatistik werden getrennt erfasst. CSV-Exporte stehen auf den jeweiligen Teamseiten zur Verfügung.
+Änderungen an `products.price_cents` aktualisieren über einen Directus-Flow alle verknüpften Waren-Verkaufseinträge, auch rückwirkend. Einzelbeträge, Warenumsatz, Kassenbewegung und CSV-Summen verwenden diese aktualisierten Preise. In der Theke nach einer CMS-Änderung **Aktualisieren** wählen. Pfandpositionen und Rückgaben behalten ihren gebuchten Betrag; Einträge ohne Produktverknüpfung bleiben unverändert. Es gibt keinen täglichen Zählerreset; der Zeitraumfilter zeigt Tagesumsätze und frühere Verkäufe. Besucherstatistik zählt erfasste Besuche, keine eindeutig identifizierten Personen. Raumeintragungen und Besucherstatistik werden getrennt erfasst. CSV-Exporte stehen auf den jeweiligen Teamseiten zur Verfügung.
 
 ## WLAN und QR-Codes
 

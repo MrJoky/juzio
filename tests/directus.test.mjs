@@ -77,6 +77,15 @@ test('Directus: Teamlogin, Eintragung, Statistik, Verkauf, Abstimmung und Rechte
     assert.equal((await req('/api/staff/sales',depositSale,staff)).r.status,201);
     positions=await admin(`/items/sales?filter[request_key][_starts_with]=${depositKey}`);
     assert.equal(positions.length,2);assert.equal(positions.find(p=>p.kind==='deposit').price_cents,25);
+    assert.equal(positions.find(p=>p.kind==='sale').price_cents,999);
+    const repriced=(await req('/api/staff/sales',null,staff)).data.filter(p=>p.request_key.startsWith(depositKey));
+    assert.equal(repriced.reduce((total,p)=>total+p.quantity*p.price_cents,0),2048);
+    assert.equal((await admin(`/items/sales/${sales[0].id}`)).price_cents,175);
+    await admin('/items/products/'+depositProduct.id,'PATCH',{price_cents:0});
+    assert.equal((await admin(`/items/sales?filter[request_key][_eq]=${depositKey}`))[0].price_cents,0);
+    await admin('/items/products/'+depositProduct.id,'PATCH',{price_cents:999});
+    await admin('/items/products/'+depositProduct.id,'PATCH',{name:'Pfandtest umbenannt'});
+    assert.equal((await admin('/items/products/'+depositProduct.id)).price_cents,999);
     const refundKey=randomUUID(),refund={quantity:1,deposit_cents:25,request_key:refundKey};
     assert.equal((await req('/api/staff/deposit-returns',refund)).r.status,401);
     assert.equal((await req('/api/staff/deposit-returns',{...refund,deposit_cents:-25},staff)).r.status,400);
@@ -85,7 +94,7 @@ test('Directus: Teamlogin, Eintragung, Statistik, Verkauf, Abstimmung und Rechte
     const refunds=await admin(`/items/sales?filter[request_key][_eq]=${refundKey}`);
     for(const position of refunds)cleanup.push(()=>admin('/items/sales/'+position.id,'DELETE'));
     assert.equal(refunds.length,1);assert.equal(refunds[0].kind,'deposit_return');assert.equal(refunds[0].price_cents,-25);
-    assert.equal([...positions,...refunds].reduce((total,p)=>total+p.quantity*p.price_cents,0),325);
+    assert.equal([...positions,...refunds].reduce((total,p)=>total+p.quantity*p.price_cents,0),2023);
     // Batch-Transaktion: Kollidiert eine Position, darf auch die andere nicht gespeichert werden.
     const atomicKey=randomUUID();
     await assert.rejects(()=>admin('/items/sales','POST',[

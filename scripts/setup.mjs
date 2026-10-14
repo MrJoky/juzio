@@ -1,6 +1,7 @@
 import { privacyTemplate } from './privacy-template.mjs';
 import { directus } from './directus.mjs';
 import { organizeCollections } from './collection-navigation.mjs';
+import { setupProductPriceSync } from './product-price-sync.mjs';
 let token = process.env.DIRECTUS_ADMIN_TOKEN;
 if (!token || !process.env.PUBLIC_SERVICE_TOKEN) throw new Error('Bitte ./start.sh verwenden.');
 const api = (url, method = 'GET', body) => directus(url, { token, method, body });
@@ -40,6 +41,7 @@ for (const [collection, fields] of Object.entries(schemas)) {
   for (const f of [id, ...fields, created]) if (!present.has(f.field)) await api(`/fields/${collection}`, 'POST', f);
 }
 await organizeCollections(api);
+await setupProductPriceSync(api);
 await api('/fields/privacy_pages/status','PATCH',{meta:{interface:'select-dropdown',options:{choices:[{text:'Entwurf',value:'draft'},{text:'Veröffentlicht',value:'published'}]}}});
 await api('/fields/privacy_pages/content','PATCH',{meta:{note:'Klartext mit Absätzen. Platzhalter ergänzen und erst nach Freigabe veröffentlichen.'}});
 await api('/fields/products/has_deposit','PATCH',{meta:{interface:'boolean',options:{label:'Produkt mit Pfand'}}});

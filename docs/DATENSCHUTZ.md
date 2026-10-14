@@ -8,7 +8,7 @@ Prüfstand: 9. Oktober 2026. Die technische Umsetzung ist eine Grundlage für de
 | --- | --- | --- |
 | Raumliste | Vorname/Spitzname, weitere Gäste, Datum, Uhrzeit, Raum | Raumnutzung; Team und Admin |
 | Statistik | Datum, optionale Uhrzeit, Alter, Geschlecht, Anzahl, Notiz | Besuchszählung; Team und Admin |
-| Theke | Produkt, Menge, damaliger Preis, Zeitpunkt, buchende Mitarbeiter-ID, Wiederholungsschlüssel, Art der Position | Waren-, Pfand- und Rückzahlungsbuchung; Team und Admin |
+| Theke | Produkt, Menge, rückwirkend synchronisierter Warenpreis bzw. gebuchter Pfandbetrag, Zeitpunkt, buchende Mitarbeiter-ID, Wiederholungsschlüssel, Art der Position | Waren-, Pfand- und Rückzahlungsbuchung; Team und Admin |
 | Abstimmung | Poll, Auswahl, Zeitpunkt, SHA-256-Browserkennung, mit geheimem Schlüssel abgeleitete IP-Kennung | Abstimmung und Mehrfachstimmensperre; Team sieht Ergebnisse, App-Service nur Kennungen |
 | Teamkonto | E-Mail, Vorname, Passwort-Hash, Rolle, Directus-Sitzungen | Anmeldung und Berechtigungen; Admin und jeweiliges Konto |
 | Datenschutzhinweise | Freigegebener Text, Titel, Status, Änderungszeit | Information; öffentlich lesbar, Admin bearbeitet |

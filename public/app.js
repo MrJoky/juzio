@@ -173,7 +173,7 @@ async function salesPage() {
     rows=await api('/api/staff/sales');render();
   });
   for(const id of ['from','to'])document.querySelector('#'+id).onchange=render;
-  document.querySelector('#refresh').onclick=safe(async()=>{rows=await api('/api/staff/sales');render();});
+  document.querySelector('#refresh').onclick=safe(async()=>{products=await api('/api/staff/products');rows=await api('/api/staff/sales');renderProducts();render();});
   document.querySelector('#export').onclick=()=>exportCsv('thekenverkauf.csv',[['Zeitpunkt','Position','Art','Menge','Einzelbetrag in Cent','Summe in Cent'],...filter(rows,'created_at').map(r=>[r.created_at,r.product_name,saleKind(r),r.quantity,r.price_cents,r.quantity*r.price_cents])]);renderProducts();render();
 }
 async function votePage() {

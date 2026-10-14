@@ -4,16 +4,16 @@
 
 Node.js ab 22, npm und Docker Compose oder Podman installieren. Node und Container-Engine regelmäßig mit Sicherheitsupdates versorgen. Im Projektverzeichnis `./start.sh` ausführen. Das Skript erzeugt beim ersten Start `.env.local` mit zufälligen Geheimnissen und Dateirechten 0600, startet Directus, installiert festgelegte npm-Pakete und richtet das Schema ein. Bei bestehenden Daten bleiben Inhalte erhalten.
 
-Die App läuft standardmäßig auf `0.0.0.0:3000`, Directus nur auf `127.0.0.1:8055`. Das CMS ist also nur am Server erreichbar. Keine Router-Portfreigaben einrichten. Das WLAN muss Verbindungen zwischen Handy und Laptop zulassen. Firewall auf das benötigte Hausnetz begrenzen, Bildschirm sperren und nach Möglichkeit Festplattenverschlüsselung verwenden. Directus-Admins können alle Daten lesen; lokale Rechneradministratoren ebenfalls.
+Die App läuft standardmäßig auf `0.0.0.0:3000`, Directus nur auf `127.0.0.1:8056`. Das CMS ist also nur am Server erreichbar. Keine Router-Portfreigaben einrichten. Das WLAN muss Verbindungen zwischen Handy und Laptop zulassen. Firewall auf das benötigte Hausnetz begrenzen, Bildschirm sperren und nach Möglichkeit Festplattenverschlüsselung verwenden. Directus-Admins können alle Daten lesen; lokale Rechneradministratoren ebenfalls.
 
-Im Oktober 2026 ist **Directus 11.12.0 nur ein vorläufiger Bestandsstand mit bekannten Sicherheitslücken**. Die Lizenz für das benötigte Rollenmodell in einer aktualisierten Version wird vom Betreiber später organisiert. Siehe [Sicherheitsbericht](SICHERHEIT.md). Die App wird dadurch nicht für einen Internetbetrieb freigegeben.
+Seit 14. Oktober 2026 läuft **Directus 12.5.0 mit aktiver Open-Innovation-Grant-Lizenz**. Die Lizenz erfordert ausgehende Lizenz- und Telemetrieverbindungen. Die App bleibt für den lokalen Betrieb vorgesehen; eine Internetfreigabe erfolgt dadurch nicht.
 
 ## Konfiguration
 
 | Variable | Bedeutung |
 | --- | --- |
 | `PORT`, `HOST` | App-Port und Bindeadresse; Standard 3000 / alle Interfaces |
-| `DIRECTUS_URL` | internes CMS-Ziel; Standard http://127.0.0.1:8055 |
+| `DIRECTUS_URL` | internes CMS-Ziel; Standard http://127.0.0.1:8056 |
 | `DIRECTUS_ADMIN_EMAIL`, `DIRECTUS_ADMIN_PASSWORD` | Erstadmin; Passwort später im CMS verwalten |
 | `DIRECTUS_ADMIN_TOKEN` | Setup-Schlüssel mit Adminrechten; ausschließlich serverseitig |
 | `DIRECTUS_SECRET` | Directus-Signierung und geheime Ableitung der IP-Stimmsperren; sicher aufbewahren |
@@ -28,7 +28,7 @@ Im Oktober 2026 ist **Directus 11.12.0 nur ein vorläufiger Bestandsstand mit be
 App: Strg+C. Directus separat stoppen:
 
 ```bash
-podman stop juze-directus
+podman stop juze-directus-v12
 # oder bei Docker Compose:
 docker compose --env-file .env.local stop
 ```
@@ -41,29 +41,36 @@ Vor Änderungen am CMS und jeder Migration eine konsistente Sicherung machen. Ap
 
 ```bash
 mkdir -p backups
-podman stop juze-directus
-podman volume export juze-directus-database --output backups/database.tar
-podman volume export juze-directus-uploads --output backups/uploads.tar
-podman start juze-directus
+podman stop juze-directus-v12
+podman volume export juze-directus-v12-database --output backups/database.tar
+podman volume export juze-directus-v12-uploads --output backups/uploads.tar
+podman start juze-directus-v12
 ```
 
 Dateinamen vor neuen Sicherungen mit Datum versehen, damit bestehende Backups nicht überschrieben werden. Zusätzlich `.env.local` verschlüsselt sichern. Bei Docker die tatsächlichen Volumenamen mit `docker volume ls` bestimmen und nach dem Docker-Volume-Backupverfahren sichern; sie hängen vom Compose-Projektnamen ab.
 
 Eine Wiederherstellung zuerst auf einem getrennten Testsystem üben: neue Volumes anlegen, gesicherte Dateien importieren, dieselbe Directus-Version und geschützte Konfiguration verwenden, danach Teamlogin, Daten und Verkäufe prüfen. Produktive Daten nicht ungeprüft überschreiben. Vor Rückkehr in den Betrieb zwischenzeitliche Löschungen berücksichtigen. SQLite-Datenbank nicht im laufenden Schreibbetrieb einfach kopieren.
 
-## Späterer Directus-Wechsel mit Lizenz
+## Directus 12 und Lizenz
 
-Der isolierte Test von **12.5.0** scheitert ohne passende Lizenz beim Erstellen der benötigten Rechte mit `403 RESOURCE_RESTRICTED`. Das Rollenmodell darf nicht durch Adminrechte für alle Nutzer oder durch öffentliche Datenfreigaben „repariert“ werden. Der produktive Server wurde nicht migriert.
+Die produktive Instanz läuft seit 14. Oktober 2026 als `juze-directus-v12` unter **http://localhost:8056**. `./start.sh` startet diese Instanz und verbindet die App mit ihr. Die Volumes heißen `juze-directus-v12-database` und `juze-directus-v12-uploads`. Der frühere Container `juze-directus` bleibt gestoppt als Rückfallbestand erhalten und wird vom Startskript nicht gestartet.
 
-1. Beim Träger Lizenz/Berechtigung für benutzerdefinierte Rechte und benötigte Benutzer/Collections klären. Den aktuellen Directus-Sicherheitsstand und Releasehinweise erneut prüfen. 12.5.0 ist der recherchierte Kandidat vom 9. Oktober, kein ungeprüfter Standard für alle zukünftigen Updates.
-2. Datenbank, Uploads und `.env.local` sichern und eine Kopie in einem getrennten Testsystem verwenden.
-3. Auf diesem Testsystem Image-Version in `compose.yaml` und `scripts/podman.mjs` gemeinsam anpassen. Die Vergleichsversion in `start.sh` ebenfalls anpassen. Die Startskripte blockieren einen abweichenden Bestandscontainer, um keine stille Migration durchzuführen.
-4. In Directus 12 eine absolute Directus-`PUBLIC_URL` konfigurieren (nicht mit der App-`PUBLIC_URL` verwechseln). Lizenz über das CMS oder die Container-Variable `LICENSE_KEY` einrichten. Schlüssel nicht in Git speichern. Bei Container-Konfiguration `.env.local` verwenden und explizit an Directus durchreichen. Kein Schlüssel wurde in diesem Projekt hinterlegt.
-5. Lizenzierung kann ausgehende Verbindungen zum Directus-Lizenzdienst verursachen. Der bisherige Satz „keine externen Dienste im Betrieb“ muss dann überprüft und in der Datenschutzseite entsprechend aktualisiert werden. Offline-Lizenzbedingungen separat prüfen.
-6. Setup erneut ausführen und vollständige Tests gegen die Testinstanz laufen lassen. Besonders öffentliche Rechte, Teamrechte und Service-Filter auf aktive Daten prüfen; Lizenzverlust darf diese Grenzen nicht unwirksam machen. Wiederherstellung testen.
-7. Erst danach in einem Wartungsfenster den bestehenden Container mit gleichem Datenvolume ersetzt starten. Unter Podman den alten Container nach Stoppen gezielt entfernen, **nicht die Volumes**; das Startskript kann den neuen Container erstellen. Unter Docker nach angepasster Konfiguration den Dienst neu erstellen. Bei Problemen aus der vor der Migration erstellten Sicherung wiederherstellen; kein blindes Downgrade auf eine bereits migrierte Datenbank.
+Vor der Übernahme wurden beide Instanzen konsistent unter `backups/directus-cutover-v12-1791972389937/` gesichert. Übernommen wurden der aktuelle Stand aller neun Fachsammlungen, die Aktivitäts-/Änderungshistorie und die bestehenden Benutzer einschließlich Passwort-Hashes. Rollen, Policies und Zugriffe waren identisch. Die lizenzierte v12-Projektkonfiguration blieb erhalten. Es gab keine hochgeladenen Dateien. Nach der Übernahme wurden Setup und Integrationstests ausgeführt.
 
-Directus-Rate-Limiter, deaktivierte WebSockets, deaktivierte öffentliche Registrierung und reduzierte Logs sind in den Containerdefinitionen vorbereitet. Beim bestehenden Podman-Container werden geänderte Umgebungsvariablen durch bloßes Starten nicht übernommen; sie gelten erst nach bewusster Neuerstellung. Der App-Schutz gilt nach App-Neustart unabhängig davon.
+Die Lizenz wird unter **Einstellungen → Lizenz** verwaltet und bleibt in der Datenbank; kein Schlüssel liegt im Repository. Die Directus-`PUBLIC_URL` bleibt `http://localhost:8056`, damit die bestehende Lizenzbindung gültig bleibt. Für neue Container kann sie über `DIRECTUS_PUBLIC_URL` gesetzt werden; diese Variable betrifft Directus, während `PUBLIC_URL` die App-Adresse steuert. Ein Adresswechsel erfordert die geordnete Deaktivierung und erneute Aktivierung der Lizenz. Die Lizenz erfordert Telemetrie; `TELEMETRY=false` allein garantiert bei dieser Lizenz keine Abschaltung. Lizenzverlust kann Team- und Formularberechtigungen einschränken. Bei Problemen keine öffentlichen Rechte oder Adminrechte als Ersatz vergeben.
+
+Sicherung mit den aktuellen Volumes:
+
+```bash
+podman stop juze-directus-v12
+podman volume export juze-directus-v12-database --output backups/v12-database.tar
+podman volume export juze-directus-v12-uploads --output backups/v12-uploads.tar
+podman start juze-directus-v12
+```
+
+Vorher die App beenden und eindeutige Dateinamen verwenden. Für einen Rückfall den gesicherten v11-Bestand separat starten und die App-Verbindung ausdrücklich zurückstellen. Seit dem Wechsel neu entstandene Daten werden dabei nicht automatisch zurückübertragen. Keine v12-Datenbank mit v11 starten. Den lizenzierten Projektbestand nicht ohne Lizenzdeaktivierung löschen.
+
+Bei Docker Compose bleibt der Versionsvergleich als Schutz vor einer ungeprüften Migration erhalten. Ein alter Compose-Container wird nicht automatisch migriert. Podman legt bei erkanntem v11-Container ohne vorbereiteten v12-Container ebenfalls keinen leeren Ersatz an.
 
 ## Prüfungen
 

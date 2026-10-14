@@ -1,5 +1,7 @@
 # Sicherheitsprüfung
 
+**Nachtrag 14. Oktober 2026:** Produktiver Wechsel auf Directus 12.5.0 mit aktiver Open-Innovation-Grant-Lizenz abgeschlossen. Aktuelle Daten und Benutzer wurden nach Sicherung übernommen; alle 16 Tests bestanden vor dem Wechsel auf der lizenzierten Instanz. Der folgende Bericht beschreibt die historische Prüfung vom 9. Oktober; der damalige Updateblocker ist durch die Lizenzaktivierung aufgelöst. Lizenz und Telemetrie erfordern externe Verbindungen. Aktueller Betrieb: [Betriebsdokumentation](BETRIEB.md).
+
 Stand: 9. Oktober 2026. Geprüft wurden App-Code, Browserausgabe, Directus-Schema-/Rechteeinrichtung, Containerdefinitionen, Abhängigkeiten und Git-Dateien. Das ist eine nachvollziehbare Code- und Konfigurationsprüfung mit Tests, kein vollständiger Penetrationstest oder Nachweis, dass alle möglichen Risiken ausgeschlossen sind. Eine Internetfreigabe erfolgt nicht.
 
 ## Befunde und Maßnahmen

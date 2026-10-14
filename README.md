@@ -1,6 +1,6 @@
 # Juze · Lokal im Jugendzentrum
 
-Raumeintragung, Besucherstatistik, Thekenverkauf und Angebotsabstimmung mit lokalem Directus-CMS. Der Laptop ist der Server; Handys greifen im Haus-WLAN darauf zu. Im vorgesehenen lokalen Betrieb ohne Cloud-Datenspeicherung und ohne externe Analyse-Dienste. Für spätere Directus-Lizenzierung die möglichen Netzwerkverbindungen prüfen.
+Raumeintragung, Besucherstatistik, Thekenverkauf und Angebotsabstimmung mit lokalem Directus-CMS. Der Laptop ist der Server; Handys greifen im Haus-WLAN darauf zu. Die Geschäftsdaten liegen lokal. Die aktivierte Directus-Lizenz benötigt externe Lizenz- und Telemetrieverbindungen.
 
 ## Dokumentation
 
@@ -10,7 +10,7 @@ Raumeintragung, Besucherstatistik, Thekenverkauf und Angebotsabstimmung mit loka
 - [Sicherheitsprüfung](docs/SICHERHEIT.md): behobene Punkte, Prüfungen und offene Risiken.
 - [Privates Repository und Leserechte](docs/REPOSITORY.md): Push und Zugriff für Außenstehende.
 
-**Offen vor einer Sicherheitsfreigabe:** Directus 11.12.0 hat bekannte Sicherheitslücken. Der isolierte Updateversuch auf 12.5.0 scheitert ohne passende Lizenz am benötigten Rechtekonzept. Der Betreiber kümmert sich später um die Lizenz; die Bestandsversion bleibt vorläufig erhalten. Die Datenschutzseite enthält absichtlich Platzhalter und bleibt ein Entwurf bis zur Freigabe durch den Träger.
+**Directus aktualisiert:** Seit 14. Oktober 2026 läuft 12.5.0 mit aktiver Lizenz und geprüften Team-/Formularrechten. Die Datenschutzseite enthält weiterhin Platzhalter und bleibt bis zur Freigabe durch den Träger ein Entwurf.
 
 ## Starten
 
@@ -23,11 +23,11 @@ Voraussetzungen: **Node.js ab 22**, npm und ein für deinen Benutzer nutzbares *
 Das Skript erzeugt beim ersten Start `.env.local` mit zufälligen Zugangsdaten, startet Directus, installiert die festgelegten npm-Abhängigkeiten und richtet Sammlungen und Rollen ein. Anschließend läuft die App im Vordergrund.
 
 - App am Laptop: **http://localhost:3000**
-- Directus-CMS am Laptop: **http://localhost:8055**
+- Directus-CMS am Laptop: **http://localhost:8056**
 - Erster Admin: **admin@example.org**, Passwort steht unter `DIRECTUS_ADMIN_PASSWORD` in `.env.local`.
 - Die WLAN-Adressen werden beim Start angezeigt.
 
-Mit **Strg+C** die App beenden. Directus läuft weiter; zum vollständigen Stoppen bei Podman `podman stop juze-directus`, bei Docker `docker compose --env-file .env.local stop`. Erneuter Start wieder mit `./start.sh`. Bestehende Daten und CMS-Inhalte bleiben erhalten. Nach einem App-Neustart meldet sich das Team erneut an.
+Mit **Strg+C** die App beenden. Directus läuft weiter; zum vollständigen Stoppen bei Podman `podman stop juze-directus-v12`, bei Docker `docker compose --env-file .env.local stop`. Erneuter Start wieder mit `./start.sh`. Bestehende Daten und CMS-Inhalte bleiben erhalten. Nach einem App-Neustart meldet sich das Team erneut an.
 
 `.env.local` enthält echte Zugangsdaten und interne Schlüssel. Nicht veröffentlichen. Die alte `.env` wird beim Startskript nicht verwendet.
 
@@ -101,7 +101,7 @@ Handy und Laptop müssen sich erreichen können. Gastnetz-Isolation oder eine Fi
 
 Die Daten liegen im persistenten Container-Volume, nicht im Container-Dateisystem:
 
-- Podman: `juze-directus-database` und `juze-directus-uploads`
+- Podman: `juze-directus-v12-database` und `juze-directus-v12-uploads`
 - Docker Compose: die Volumes `directus_database` und `directus_uploads` des Projekts
 
 Die alten Dateien in `data/` bleiben unverändert erhalten, werden von der neuen App aber nicht mehr genutzt. Beim Umbau waren die bisherigen Raum- und Statistikeinträge leer und alle Verkaufszähler null; es mussten keine Bestandsdaten übernommen werden.
@@ -110,10 +110,10 @@ Für ein konsistentes Podman-Backup die App beenden und dann beispielsweise:
 
 ```bash
 mkdir -p backups
-podman stop juze-directus
-podman volume export juze-directus-database --output backups/database.tar
-podman volume export juze-directus-uploads --output backups/uploads.tar
-podman start juze-directus
+podman stop juze-directus-v12
+podman volume export juze-directus-v12-database --output backups/database.tar
+podman volume export juze-directus-v12-uploads --output backups/uploads.tar
+podman start juze-directus-v12
 ```
 
 Zusätzlich `.env.local` sicher aufbewahren. Backups enthalten personenbezogene Eintragungen. Container-Volumes nicht löschen; `docker compose down -v` entfernt die Daten. Die Directus-Version ist in `compose.yaml` und `scripts/podman.mjs` festgelegt; vor einem Versionswechsel Daten sichern und beide Stellen gemeinsam anpassen.

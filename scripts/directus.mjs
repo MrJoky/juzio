@@ -1,4 +1,4 @@
-export const base = process.env.DIRECTUS_URL || 'http://127.0.0.1:8055';
+export const base = process.env.DIRECTUS_URL || 'http://127.0.0.1:8056';
 export async function directus(endpoint, { token, method = 'GET', body } = {}) {
   let response;
   try {

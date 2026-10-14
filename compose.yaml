@@ -1,12 +1,13 @@
 services:
   directus:
-    image: directus/directus:11.12.0
+    image: directus/directus:12.5.0
     ports:
-      - "127.0.0.1:8055:8055"
+      - "127.0.0.1:8056:8055"
     volumes:
       - directus_database:/directus/database
       - directus_uploads:/directus/uploads
     environment:
+      PUBLIC_URL: ${DIRECTUS_PUBLIC_URL:-http://localhost:8056}
       SECRET: ${DIRECTUS_SECRET:?Bitte start.sh verwenden}
       ADMIN_EMAIL: ${DIRECTUS_ADMIN_EMAIL}
       ADMIN_PASSWORD: ${DIRECTUS_ADMIN_PASSWORD}

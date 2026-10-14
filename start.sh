@@ -6,7 +6,7 @@ node -e 'if(Number(process.versions.node.split(".")[0])<22)process.exit(1)' || {
 node scripts/config.mjs
 if command -v docker >/dev/null && docker info >/dev/null 2>&1; then
   existing_id=$(docker compose --env-file .env.local ps -aq directus)
-  if [[ -n "$existing_id" ]] && [[ "$(docker inspect --format '{{.Config.Image}}' "$existing_id")" != "directus/directus:11.12.0" ]]; then
+  if [[ -n "$existing_id" ]] && [[ "$(docker inspect --format '{{.Config.Image}}' "$existing_id")" != "directus/directus:12.5.0" ]]; then
     echo 'Directus-Update erforderlich. Vorher Backup und Lizenz-/Rollenprüfung: docs/BETRIEB.md.'
     exit 1
   fi
@@ -20,5 +20,5 @@ else
 fi
 npm ci --no-audit --no-fund
 node --env-file=.env.local scripts/setup.mjs
-printf '\nDirectus CMS: http://localhost:8055\nAdmin-Zugang: siehe .env.local\nStoppen der App: Strg+C (Directus und Daten bleiben erhalten).\n\n'
+printf '\nDirectus 12 CMS: http://localhost:8056\nLizenzverwaltung: http://localhost:8056/admin/settings/license\nAdmin-Zugang: siehe .env.local\nStoppen der App: Strg+C (Directus und Daten bleiben erhalten).\n\n'
 exec node --env-file=.env.local server.js

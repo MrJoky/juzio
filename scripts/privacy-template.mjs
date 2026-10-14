@@ -20,7 +20,7 @@ Teamkonto: E-Mail-Adresse, gegebenenfalls Vorname, Rolle und Anmeldeinformatione
 
 4. Wer kann Daten sehen?
 Berechtigte Teammitglieder können Raumlisten, Statistik und Kassenbuchungen sehen. Administrierende Personen verwalten Konten, Inhalte und Daten. Jugendliche können die eigenen Formulare nutzen, aber keine gespeicherten Namen oder Teamdaten abrufen.
-Die Anwendung läuft auf dem lokalen Server des Jugendzentrums und nutzt im vorgesehenen Betrieb keine externen Analyse-, Werbe- oder Schriftendienste. [Weitere Empfänger, IT-Dienstleister und gegebenenfalls Auftragsverarbeiter ergänzen. Tatsächliche Betriebsumgebung prüfen.]
+Die Anwendung läuft auf dem lokalen Server des Jugendzentrums. Die aktive Directus-Lizenz erfordert externe Lizenzprüfungen und Telemetrieverbindungen zu Directus. [Empfänger, Datenumfang und Rechtsgrundlagen vor Freigabe prüfen und ergänzen.] [Weitere Empfänger, IT-Dienstleister und gegebenenfalls Auftragsverarbeiter ergänzen. Tatsächliche Betriebsumgebung prüfen.]
 [Etwaige Übermittlungen außerhalb des Europäischen Wirtschaftsraums und Garantien ergänzen oder nach Prüfung ausschließen.]
 
 5. Wie lange bleiben Daten gespeichert?

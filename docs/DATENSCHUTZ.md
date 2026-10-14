@@ -26,7 +26,7 @@ Geschäftsdaten liegen in Directus/SQLite in lokalen Container-Volumes. Exporte 
 | Anfragebegrenzung im App-RAM | etwa 1 Minute, Bereinigung alle 60 Sekunden | IP, Kategorie, Anzahl |
 | Mitarbeitercode im App-RAM | 10 Sekunden Gültigkeit; nach Ablauf erneuert, bis Bereinigung/Neustart ggf. im RAM | zufälliger Code je Poll; keine dauerhafte Speicherung |
 
-Cookies erhalten `Secure` nur bei `APP_SECURE_COOKIES=true`; das erfordert funktionierenden HTTPS-Zugang. Lokales HTTP schützt Übertragungen nicht vor Mitlesen. Die App lädt keine externen Fonts, Tracker oder CDNs; Directus-Telemetrie ist deaktiviert. Paket- und Containerdownloads sowie die Entwicklung finden außerhalb dieses lokalen Datenflusses statt. Das Repository enthält Code, keine Geschäftsdaten.
+Cookies erhalten `Secure` nur bei `APP_SECURE_COOKIES=true`; das erfordert funktionierenden HTTPS-Zugang. Lokales HTTP schützt Übertragungen nicht vor Mitlesen. Die App lädt keine externen Fonts, Tracker oder CDNs. Die aktive Directus-Open-Innovation-Grant-Lizenz erfordert Lizenzprüfungen und Telemetrieverbindungen; `TELEMETRY=false` garantiert hier keine Abschaltung. Empfänger und Umfang sind vor Freigabe der Datenschutzhinweise zu prüfen. Paket- und Containerdownloads sowie die Entwicklung finden außerhalb dieses lokalen Datenflusses statt. Das Repository enthält Code, keine Geschäftsdaten.
 
 ## Vor der Freigabe durch den Träger
 

@@ -1,7 +1,9 @@
+import { api } from '../lib/api.js';
 import { esc } from '../lib/format.js';
 import { heading } from '../lib/ui.js';
 
-export function teamPage(app, user) {
+export async function teamPage(app, user) {
+  const { cmsUrl } = await api('/api/staff/config');
   const links = [
     ['/raumliste', 'Raumliste', 'Alle Raumeintragungen ansehen.'],
     ['/statistik', 'Besucherstatistik', 'Besuche erfassen und auswerten.'],
@@ -31,8 +33,8 @@ export function teamPage(app, user) {
       <div class="cms-note">
         <strong>Inhalte und Kollegen verwalten</strong>
         <p>
-          Directus am Server-Laptop öffnen:
-          <a href="http://localhost:8056" target="_blank" rel="noopener">
+          Directus im Hausnetz öffnen:
+          <a href="${esc(cmsUrl)}" target="_blank" rel="noopener">
             CMS öffnen
           </a>
           . Hier bearbeitet ihr Räume, Produkte und Abstimmungen. Benutzerkonten

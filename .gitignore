@@ -16,3 +16,5 @@ backups/
 *.tgz
 *.pem
 *.key
+
+!.env.server.example

@@ -1,7 +1,7 @@
 {
   "name": "juzio", "version": "1.0.0", "private": true,
   "description": "JuZ.io – Mehr Zeit für Jugendarbeit. Räume, Besucherstatistik, Theke und Abstimmungen mit Directus.", "type": "module",
-  "scripts": { "start": "node --env-file-if-exists=.env.local server.js", "dev": "node --env-file-if-exists=.env.local --watch server.js", "test": "node --test" },
+  "scripts": { "start": "node app.server.js", "dev": "node --watch app.server.js", "test": "node --test" },
   "engines": { "node": ">=22" },
   "dependencies": { "qrcode": "1.5.4" }
 }

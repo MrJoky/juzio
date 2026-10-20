@@ -2,9 +2,9 @@
 
 ## Start und Tagesablauf
 
-Am Server-Laptop `./start.sh` starten. Der Laptop bleibt eingeschaltet und mit dem Haus-WLAN verbunden. Die App öffnet ihr unter `http://localhost:3000`; Jugendliche verwenden die WLAN-Adresse, die beim Start ausgegeben wird. Die App muss im Terminal weiterlaufen. Vor der ersten Nutzung die Datenschutzhinweise im CMS vervollständigen.
+Handys mit dem Haus-WLAN verbinden und die vom Team bereitgestellte App-Adresse oder einen QR-Code öffnen. Büro-PCs und andere Geräte benötigen eine Verbindung zum Hausnetz und Zugriff auf den Server. Die App und das CMS (Directus zur Verwaltung der Inhalte) haben jeweils eine feste Adresse, die die Administration bereitstellt.
 
-Zu Beginn meldet sich jede Mitarbeiterperson mit ihrem eigenen Konto unter **Team-Login** an. Am Ende **Abmelden** wählen, CSV-Dateien sicher ablegen und die App mit Strg+C beenden. Directus läuft anschließend weiter; zum Stoppen siehe [Betrieb](BETRIEB.md).
+Zu Beginn meldet sich jede Mitarbeiterperson unter **Team-Login** mit ihrem eigenen Konto an. Am Ende **Abmelden** wählen und exportierte CSV-Dateien sicher ablegen. Der Server läuft unabhängig von den verwendeten Geräten weiter.
 
 ## Raumeintragung und Raumliste
 
@@ -22,14 +22,14 @@ Datum und Zeitraumfilter gelten auch für die Summen und den CSV-Export. Vollst�
 
 ## Auswertungsgrafiken in Directus
 
-Unter **Insights** auf http://localhost:8056 stehen dem Team vier Dashboards zur Verfügung:
+Unter **Insights** im CMS stehen dem Team vier Dashboards zur Verfügung:
 
 - **JuZ.io · Besucher:** erfasste Besuchsmengen insgesamt und in den letzten 30 Tagen, Anzahl der Statistikeinträge mit Besuchern, Tagesverlauf über drei Monate sowie Alters- und Geschlechtsverteilung.
 - **JuZ.io · Raumnutzung:** Anzahl der Raumeintragungen insgesamt, in den letzten 30 Tagen, pro Tag und pro Raum. Das sind Eintragungen, keine Personen oder Nutzungsstunden.
 - **JuZ.io · Theke:** verkaufte Artikel und ausgegebenes/zurückgenommenes Pfand in Stück, Tagesverlauf und Produktvergleich. Geldbeträge und Kassenbewegung stehen weiterhin in der Thekenübersicht der App.
 - **JuZ.io · Abstimmungen:** Stimmen insgesamt und in den letzten 30 Tagen, Verlauf, Vergleich je Abstimmung und Angebote aus als aktiv markierten Abstimmungen.
 
-Kennzahlen und Balkendiagramme beziehen sich auf den gesamten gespeicherten Bestand, sofern im Titel kein anderer Zeitraum steht. Besuchs- und Verkaufsmengen werden summiert; Abstimmungen zählen gespeicherte Stimmen. Lücken im Tagesverlauf bedeuten fehlende Einträge. Das Team darf die Dashboards ansehen; Bearbeitung erfolgt durch den Admin. Das Setup ergänzt fehlende Vorlagen und legt keine Duplikate an. Die ursprünglich fehlerhaften Rasterpositionen ab 0 werden einmalig auf das Directus-Raster ab 1 mit lesbaren Größen und Abständen korrigiert. Eigene Layouts und Paneloptionen bleiben erhalten. Die frühere Besuchstage-Kachel wird wegen einer Directus-Datumsformatierung durch die numerisch korrekte Anzahl der Statistikeinträge mit Besuchern ersetzt.
+Kennzahlen und Balkendiagramme beziehen sich auf den gesamten gespeicherten Bestand, sofern im Titel kein anderer Zeitraum steht. Besuchs- und Verkaufsmengen werden summiert; Abstimmungen zählen gespeicherte Stimmen. Lücken im Tagesverlauf bedeuten fehlende Einträge. Das Team darf die Dashboards ansehen; Bearbeitung erfolgt durch den Admin.
 
 ## Theke, Verkauf und Pfand
 
@@ -49,11 +49,11 @@ Jugendliche öffnen den QR-Link, wählen ein Angebot und fragen euch direkt vor 
 
 ## QR-Codes
 
-Unter **QR-Codes** stehen Links zur Raumeintragung und Abstimmung. Den WLAN-Adapter des Laptops wählen, Codes drucken und im Haus aufhängen. Handy und Laptop müssen im erreichbaren Hausnetz sein. Gastnetz-Isolation kann den Zugriff verhindern. Für dauerhafte Ausdrucke eine feste DHCP-Adresse im Router und `PUBLIC_URL` konfigurieren.
+Unter **QR-Codes** stehen Links zur Raumeintragung und Abstimmung. Die feste HTTPS-Adresse prüfen, Codes drucken und im Haus aufhängen. Handys benötigen Zugang zum Haus-WLAN und müssen den Server darüber erreichen können. Bei einem Domainwechsel die Ausdrucke erneuern.
 
 ## Datenschutzseite
 
-Der Link **Datenschutz** ist auf jeder Seite im Fußbereich und ohne Anmeldung erreichbar. Am Server `http://localhost:8055` als Admin öffnen, Sammlung **privacy_pages** wählen, Eintrag mit `slug = datenschutz` öffnen. Titel und Text bearbeiten. Der Text ist Klartext; Absätze bleiben erhalten, HTML wird nicht ausgeführt. `slug` unverändert lassen. `status = draft` zeigt eine Entwurfswarnung; erst nach Prüfung und Vervollständigung `published` setzen. Speichern und `/datenschutz` neu laden. Erneutes Setup überschreibt eigene Texte nicht.
+Der Link **Datenschutz** ist auf jeder Seite im Fußbereich und ohne Anmeldung erreichbar. Die bereitgestellte CMS-Adresse im Browser öffnen und als Admin anmelden, dann die Sammlung **privacy_pages** wählen, Eintrag mit `slug = datenschutz` öffnen. Titel und Text bearbeiten. Der Text ist Klartext; Absätze bleiben erhalten, HTML wird nicht ausgeführt. `slug` unverändert lassen. `status = draft` zeigt eine Entwurfswarnung; erst nach Prüfung und Vervollständigung `published` setzen. Speichern und `/datenschutz` neu laden. Erneutes Setup überschreibt eigene Texte nicht.
 
 Der Träger muss Namen, Anschrift, Kontakt, Rechtsgrundlagen, Speicherfristen, Empfänger und zuständige Aufsicht ergänzen. Bei geänderten Datenflüssen die Erklärung anpassen. [Datenschutzorganisation](DATENSCHUTZ.md) beschreibt die weiteren Aufgaben.
 

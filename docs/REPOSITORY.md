@@ -2,7 +2,7 @@
 
 ## Was ins Repository gehört
 
-Quellcode, Schema-/Setup-Skripte, Tests, Dokumentation, `package-lock.json` und `.env.example` ohne echte Werte. `.env.local`, `.env`, Datenbanken, Backups, private Schlüssel und CSV-Exporte gehören nicht hinein. `.gitignore` schützt typische Dateien, ersetzt aber keine Prüfung vor dem Commit. Auch im privaten Repository keine Passwörter oder Besucherlisten speichern.
+Quellcode, Schema-/Setup-Skripte, Tests, Dokumentation, `package-lock.json` und `.env.server.example` ohne echte Werte. `.env.server`, `.env`, Datenbanken, Backups, private Schlüssel und CSV-Exporte gehören nicht hinein. `.gitignore` schützt typische Dateien, ersetzt aber keine Prüfung vor dem Commit. Auch im privaten Repository keine Passwörter oder Besucherlisten speichern.
 
 Für ein neues Projekt vor dem Push im gewünschten Hosting ein **privates** Repository anlegen. Bei GitHub keine README automatisch erzeugen, wenn ihr den vorhandenen Verlauf übernehmen wollt. Danach lokal:
 

@@ -37,12 +37,12 @@ Text zwischen HTML-Tags oder innerhalb von Anführungszeichen ändern. `${…}` 
 | Browser-Titel, Logo-Schriftzug, öffentliche Navigation und Fußzeile | [index.html](../public/index.html) |
 | Aussehen und Abstände | [styles.css](../public/styles.css) |
 
-Nach Textänderungen genügt ein Neuladen der Browserseite. Bei neu angelegten Moduldateien die App einmal neu starten: Der Server ermittelt beim Start die erlaubten `.js`-Dateien in `public/pages/` und `public/lib/`. Andere Projektdateien werden darüber nicht ausgeliefert. Eine neue Seite zusätzlich in `app.js` und in der serverseitigen Seiten-/Rechtezuordnung registrieren.
+Nach Änderungen am Frontend den Server mit `./start-server.sh` neu bauen und anschließend die Browserseite neu laden. Bei neu angelegten Moduldateien die App einmal neu starten: Der Server ermittelt beim Start die erlaubten `.js`-Dateien in `public/pages/` und `public/lib/`. Andere Projektdateien werden darüber nicht ausgeliefert. Eine neue Seite zusätzlich in `app.js` und in der serverseitigen Seiten-/Rechtezuordnung registrieren.
 
 ## Prüfung
 
 ```bash
-node --env-file=.env.local --test
+npm test
 ```
 
 Die Tests importieren Statistik- und Kassenberechnungen direkt aus den Seitenmodulen. Weitere Tests prüfen Formularverhalten, HTML-Maskierung und die vollständige Auslieferung aller Modul-Imports. Für Prüfungen mit dem laufenden CMS zusätzlich `DIRECTUS_INTEGRATION=1` setzen.

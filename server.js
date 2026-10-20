@@ -2,7 +2,6 @@ import { randomBytes, randomInt } from 'node:crypto';
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { readdirSync } from 'node:fs';
-import { networkInterfaces } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import QRCode from 'qrcode';
@@ -12,8 +11,6 @@ const root = path.dirname(fileURLToPath(import.meta.url));
 const sessions = new Map();
 const limits = new Map();
 const publicToken = process.env.PUBLIC_SERVICE_TOKEN;
-const port = Number(process.env.PORT || 3000);
-const host = process.env.HOST || '0.0.0.0';
 const protectedPages = new Set(['/team', '/raumliste', '/statistik', '/theke', '/abstimmung-team', '/qr']);
 const pages = new Set(['/', '/login', '/abstimmung', '/datenschutz', ...protectedPages]);
 const assets = new Set(['/app.js', '/styles.css', '/manifest.json']);
@@ -39,7 +36,7 @@ async function body(req) {
 }
 function json(res, status, data) { res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' }); res.end(JSON.stringify(data)); }
 function rate(req, category, maximum) {
-  const key = `${req.socket.remoteAddress}:${category}`; const now = Date.now();
+  const key = `${req.clientAddress || req.socket.remoteAddress}:${category}`; const now = Date.now();
   let r = limits.get(key); if (!r || now > r.until) { r = { count: 0, until: now + 60000 }; limits.set(key, r); }
   if (++r.count > maximum) fail(429, 'Zu viele Anfragen. Bitte in einer Minute erneut versuchen.');
 }
@@ -59,19 +56,12 @@ async function session(req) {
   } catch (e) { if ([401,403].includes(e.status)) { sessions.delete(id); return null; } throw e; }
   return s;
 }
-export function localUrls(interfaces = networkInterfaces(), publicUrl = process.env.PUBLIC_URL, listenPort = port) {
-  if (publicUrl) {
-    let parsed;
-    try { parsed = new URL(publicUrl); } catch { fail(503,'PUBLIC_URL muss eine gültige HTTP(S)-Adresse sein.'); }
-    if (!['http:','https:'].includes(parsed.protocol) || parsed.username || parsed.password || parsed.pathname !== '/' || parsed.search || parsed.hash) fail(503,'PUBLIC_URL muss eine HTTP(S)-Adresse ohne Pfad oder Zugangsdaten sein.');
-    return [parsed.origin];
-  }
-  // Container-Bridges und Tunnel sind vom Handy im Haus-WLAN nicht erreichbar.
-  return [...new Set(Object.entries(interfaces)
-    .filter(([name]) => !/^(docker|br-|veth|virbr|podman|cni|tun|tap|wg|tailscale|zt)/i.test(name))
-    .flatMap(([, addresses]) => addresses || [])
-    .filter(n => n && n.family === 'IPv4' && !n.internal && !n.address.startsWith('169.254.'))
-    .map(n => `http://${n.address}:${listenPort}`))];
+export function publicUrls(publicUrl = process.env.PUBLIC_URL) {
+  let parsed;
+  try { parsed = new URL(publicUrl); } catch { fail(503, 'PUBLIC_URL muss eine gültige HTTPS-Adresse sein.'); }
+  if (parsed.protocol !== 'https:' || parsed.username || parsed.password || parsed.pathname !== '/' || parsed.search || parsed.hash)
+    fail(503, 'PUBLIC_URL muss eine HTTPS-Adresse ohne Pfad oder Zugangsdaten sein.');
+  return [parsed.origin];
 }
 export function trustedHost(hostHeader) {
   let requested;
@@ -80,7 +70,7 @@ export function trustedHost(hostHeader) {
     if (parsed.username || parsed.password || parsed.pathname !== '/' || parsed.search || parsed.hash) return false;
     requested = parsed.hostname;
   } catch { return false; }
-  const hosts = new Set(['localhost','127.0.0.1','[::1]',...localUrls().map(url=>new URL(url).hostname),...Object.values(networkInterfaces()).flat().filter(Boolean).map(n=>n.family==='IPv6'?`[${n.address}]`:n.address)]);
+  const hosts = new Set(['localhost','127.0.0.1','[::1]',...(process.env.PUBLIC_URL ? publicUrls().map(url=>new URL(url).hostname) : [])]);
   return hosts.has(requested);
 }
 async function activePolls() {
@@ -112,7 +102,7 @@ export function createVoteCodes(now = Date.now) {
     retain(polls) { for (const id of codes.keys()) if (!polls.has(id)) codes.delete(id); }
   };
 }
-export function createApp() {
+export function createApp({ clientAddress = req => req.socket.remoteAddress, acceptHost = trustedHost } = {}) {
   const voteCodes = createVoteCodes();
   const statisticUpdates = new Map();
   return createServer({requestTimeout:30000,headersTimeout:10000,maxHeaderSize:16384},async (req, res) => {
@@ -122,7 +112,8 @@ export function createApp() {
     res.setHeader('X-Frame-Options','DENY');
     res.setHeader('Content-Security-Policy', "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'");
     try {
-      if (!trustedHost(req.headers.host)) fail(403,'Diese Serveradresse ist nicht freigegeben.');
+      req.clientAddress = clientAddress(req);
+      if (!acceptHost(req.headers.host)) fail(403,'Diese Serveradresse ist nicht freigegeben.');
       const url = new URL(req.url, 'http://local'); const p = url.pathname;
       if (!['GET', 'POST'].includes(req.method)) fail(405, 'Methode nicht erlaubt.');
       if (req.method === 'GET') rate(req,'read',240);
@@ -185,6 +176,7 @@ export function createApp() {
         const s = await session(req);
         if (!s) { if (!p.startsWith('/api/')) { res.writeHead(303,{Location:'/login'}); return res.end(); } fail(401,'Bitte anmelden.'); }
         const api = (endpoint,method='GET',data) => directus(endpoint,{token:s.token,method,body:data});
+        if (p === '/api/staff/config' && req.method === 'GET') return json(res,200,{cmsUrl:publicUrls(process.env.DIRECTUS_PUBLIC_URL)[0]});
         if (p === '/api/staff/entries') {
           if (req.method === 'GET') return json(res,200,await api('/items/room_entries?sort=-created_at&limit=-1'));
           const b = await body(req);
@@ -263,7 +255,7 @@ export function createApp() {
           return json(res,200,polls.map(p=>({...p,options:options.filter(o=>o.poll===p.id).map(o=>({...o,count:votes.filter(v=>v.poll===p.id&&v.option===o.id).length})),total:votes.filter(v=>v.poll===p.id).length})));
         }
         if (p === '/api/staff/links') {
-          const bases = localUrls(); return json(res,200,{bases,links:await Promise.all(bases.flatMap(base => ['/', '/abstimmung'].map(async route=>({label:route==='/'?'Raumeintragung':'Abstimmung',url:base+route,qr:await QRCode.toDataURL(base+route,{width:320,margin:2})}))))});
+          const bases = publicUrls(); return json(res,200,{bases,links:await Promise.all(bases.flatMap(base => ['/', '/abstimmung'].map(async route=>({label:route==='/'?'Raumeintragung':'Abstimmung',url:base+route,qr:await QRCode.toDataURL(base+route,{width:320,margin:2})}))))});
         }
       }
       // Alte Links bleiben nutzbar, alte Passwort- und Dateispeicher-APIs entfallen.
@@ -277,16 +269,4 @@ export function createApp() {
       fail(404,'Seite nicht gefunden.');
     } catch(e) { json(res,e.status || 500,{error:e.status ? e.message : 'Die Anfrage konnte nicht verarbeitet werden.'}); if (!e.status) console.error('Unerwarteter Serverfehler; keine Formulardaten protokolliert.'); }
   });
-}
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  if (!publicToken) throw new Error('PUBLIC_SERVICE_TOKEN fehlt. Bitte ./start.sh verwenden.');
-  const server = createApp();
-  server.on('error', error => {
-    if (error.code === 'EADDRINUSE') {
-      console.error(`Port ${port} ist bereits belegt. Falls JuZ.io schon läuft, öffne http://localhost:${port}.`);
-      console.error('Für einen Neustart zuerst die laufende Instanz mit Strg+C in ihrem Terminal beenden.');
-    } else console.error(`Die App konnte nicht starten (${error.code || 'unbekannter Fehler'}).`);
-    process.exitCode = 1;
-  });
-  server.listen(port,host,()=>{ console.log(`JuZ.io: http://localhost:${port}`); for(const url of localUrls()) console.log(`WLAN: ${url}`); });
 }

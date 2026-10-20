@@ -1,0 +1,11 @@
+{$PUBLIC_URL} {
+    tls internal
+    reverse_proxy app:3000 {
+        header_up X-Real-IP {remote_host}
+    }
+}
+
+{$DIRECTUS_PUBLIC_URL} {
+    tls internal
+    reverse_proxy directus:8055
+}

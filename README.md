@@ -10,7 +10,7 @@ Der öffentlich einsehbare Quellcode ist **nicht unter einer Open-Source-Lizenz*
 
 Der Rechtevorbehalt betrifft die konkrete geschützte Umsetzung. Abstrakte Ideen und allgemeine Konzepte werden dadurch nicht exklusiv geschützt.
 
-Raumeintragung, Besucherstatistik, Thekenverkauf und Angebotsabstimmung mit lokalem Directus-CMS. Der Laptop ist der Server; Handys greifen im Haus-WLAN darauf zu. Die Geschäftsdaten liegen lokal. Die aktivierte Directus-Lizenz benötigt externe Lizenz- und Telemetrieverbindungen.
+Raumeintragung, Besucherstatistik, Thekenverkauf und Angebotsabstimmung mit selbst gehostetem Directus-CMS. JuZ.io läuft dauerhaft auf einem Server im Hausnetz. Handys greifen über das Haus-WLAN zu, Mitarbeitende über ihren Büro-PC oder andere verbundene Geräte. App und CMS sind jeweils über eine feste HTTPS-Adresse erreichbar.
 
 ## Dokumentation
 
@@ -21,26 +21,19 @@ Raumeintragung, Besucherstatistik, Thekenverkauf und Angebotsabstimmung mit loka
 - [Sicherheitsprüfung](docs/SICHERHEIT.md): behobene Punkte, Prüfungen und offene Risiken.
 - [Privates Repository und Leserechte](docs/REPOSITORY.md): Push und Zugriff für Außenstehende.
 
-**Directus aktualisiert:** Seit 14. Oktober 2026 läuft 12.5.0 mit aktiver Lizenz und geprüften Team-/Formularrechten. Die Datenschutzseite enthält weiterhin Platzhalter und bleibt bis zur Freigabe durch den Träger ein Entwurf.
+## Einrichtung
 
-## Starten
+Voraussetzungen: Linux-Server, Docker mit Compose v2, feste Server-IP und zwei DNS-Namen im Hausnetz für App und CMS.
 
-Voraussetzungen: **Node.js ab 22**, npm und ein für deinen Benutzer nutzbares **Docker mit Compose oder Podman**. Beim ersten Start braucht der Laptop Internet für Container und npm-Pakete.
+1. `.env.server.example` als `.env.server` kopieren und Server-IP, beide HTTPS-Adressen, Admin-Zugang und Geheimnisse eintragen.
+2. Directus und Caddy starten und das HTTPS-Vertrauen auf den Geräten einrichten.
+3. Die CMS-Adresse am Büro-PC öffnen, als erster Admin anmelden und eine passende Directus-Lizenz aktivieren.
+4. Mit `./start-server.sh` die automatische JuZ.io-Einrichtung ausführen.
+5. Im CMS Teamkonten, Räume, Produkte, Abstimmungen und Datenschutzhinweise vorbereiten.
 
-```bash
-./start.sh
-```
+Die vollständigen Befehle, die Anleitung zum ersten CMS-Login und den Antrag für die kostenlose Directus-Lizenz enthält [Server einrichten und betreiben](docs/BETRIEB.md).
 
-Das Skript erzeugt beim ersten Start `.env.local` mit zufälligen Zugangsdaten, startet Directus, installiert die festgelegten npm-Abhängigkeiten und richtet Sammlungen und Rollen ein. Anschließend läuft die App im Vordergrund.
-
-- App am Laptop: **http://localhost:3000**
-- Directus-CMS am Laptop: **http://localhost:8056**
-- Erster Admin: **admin@example.org**, Passwort steht unter `DIRECTUS_ADMIN_PASSWORD` in `.env.local`.
-- Die WLAN-Adressen werden beim Start angezeigt.
-
-Mit **Strg+C** die App beenden. Directus läuft weiter; zum vollständigen Stoppen bei Podman `podman stop juze-directus-v12`, bei Docker `docker compose --env-file .env.local stop`. Erneuter Start wieder mit `./start.sh`. Bestehende Daten und CMS-Inhalte bleiben erhalten. Nach einem App-Neustart meldet sich das Team erneut an.
-
-`.env.local` enthält echte Zugangsdaten und interne Schlüssel. Nicht veröffentlichen. Die alte `.env` wird beim Startskript nicht verwendet.
+Der Server läuft im Hintergrund weiter und startet seine Dienste nach einem Neustart automatisch. Für die tägliche Nutzung genügt ein Browser im Hausnetz; Handys benötigen Zugang zum Haus-WLAN und zum Server. Es ist keine Internet-Portfreigabe vorgesehen.
 
 ## Seiten und Zugriff
 
@@ -61,11 +54,11 @@ Ohne Login enthält die Navigation nur Raumeintragung und Login. Die öffentlich
 
 ## Kollegen und Inhalte in Directus
 
-1. Am Laptop das CMS öffnen und als Admin anmelden.
-2. Unter **Benutzerverwaltung** einen Benutzer mit gültiger E-Mail-Adresse und Passwort anlegen, Status **Aktiv**, Rolle **JuZ.io Team**. Eine echte zustellbare Adresse ist für den lokalen Passwortlogin nicht notwendig, das E-Mail-Format muss Directus akzeptieren. Die Anlage funktioniert ohne Mailversand.
+1. Die bereitgestellte CMS-Adresse im Browser öffnen und als Admin anmelden.
+2. Unter **Benutzerverwaltung** einen Benutzer mit gültiger E-Mail-Adresse und Passwort anlegen, Status **Aktiv**, Rolle **JuZ.io Team**. Eine echte zustellbare Adresse ist für den Passwortlogin nicht notwendig, das E-Mail-Format muss Directus akzeptieren. Die Anlage funktioniert ohne Mailversand.
 3. Kollegen melden sich unter `/login` mit diesen persönlichen Daten an. Bei aktivierter Zwei-Faktor-Anmeldung zusätzlich den Einmalcode eingeben.
 
-Die automatisch erzeugte Formular-Servicekennung ist nur für die App bestimmt und erhält keinen Teamzugriff. Kollegen benötigen keine Administratorrechte. Directus selbst ist nur am Server-Laptop erreichbar.
+Die automatisch erzeugte Formular-Servicekennung ist nur für die App bestimmt und erhält keinen Teamzugriff. Kollegen benötigen keine Administratorrechte. Das CMS ist für berechtigte Mitarbeitende direkt im Hausnetz erreichbar.
 
 | Sammlung im CMS | Zweck |
 | --- | --- |
@@ -97,44 +90,24 @@ In der **Raumliste** öffnet „Bearbeiten“ ein Formular für Datum, Uhrzeit, 
 
 Unter **Insights** im CMS stehen vier Team-Dashboards mit 22 Kennzahlen und Diagrammen bereit: **Besucher**, **Raumnutzung**, **Theke** und **Abstimmungen**. Besuchs- und Verkaufsmengen werden summiert; Raumeintragungen und Stimmen werden gezählt. Die Thekencharts zeigen Stückzahlen; Geldbeträge bleiben in der App. Zeiträume stehen in den Paneltiteln. Das Setup ergänzt fehlende Panels und erhält eigene Einstellungen; die fehlerhafte ursprüngliche Rasteranordnung wird automatisch repariert. Details: [Bedienung](docs/BEDIENUNG.md).
 
-## WLAN und QR-Codes
+## Adresse und QR-Codes
 
-Im Team unter **QR-Codes** die Links für Raumeintragung und Abstimmung anzeigen und ausdrucken. Container-Bridges und bekannte VPN-Schnittstellen werden ausgeblendet. Bei mehreren Netzwerkschnittstellen entstehen Codes für mehrere IP-Adressen: die WLAN-Adresse wählen. Optional in `.env.local` die feste Adresse konfigurieren:
-
-```dotenv
-PUBLIC_URL=http://192.168.1.50:3000
-```
-
-Danach App neu starten. `PUBLIC_URL` legt nur das Ziel der QR-Codes fest; die App lauscht standardmäßig auf allen Netzwerkadressen. Eine feste DHCP-Zuweisung im Router verhindert, dass Ausdrucke nach einer IP-Änderung unbrauchbar werden.
-
-Handy und Laptop müssen sich erreichen können. Gastnetz-Isolation oder eine Firewall können das trotz gleichem WLAN verhindern. Port **3000/TCP** muss im lokalen Netz erreichbar sein. Der Laptop muss eingeschaltet sein und darf während der Nutzung nicht schlafen. Das System verwendet lokales HTTP; für Zugriff über das Internet ist es nicht konfiguriert.
+Unter **QR-Codes** die Links zur Raumeintragung und Abstimmung drucken. Im Serverbetrieb verwenden alle Links die feste HTTPS-Adresse aus `.env.server`. Nach einem Domainwechsel `PUBLIC_URL` anpassen, `./start-server.sh` erneut ausführen und Ausdrucke erneuern. Handy und Server müssen sich über diese Adresse erreichen können.
 
 ## Daten und Sicherung
 
 Die Daten liegen im persistenten Container-Volume, nicht im Container-Dateisystem:
 
-- Podman: `juze-directus-v12-database` und `juze-directus-v12-uploads`
-- Docker Compose: die Volumes `directus_database` und `directus_uploads` des Projekts
+- Server: `juzio-server_directus_database` und `juzio-server_directus_uploads`
 
-Die alten Dateien in `data/` bleiben unverändert erhalten, werden von der neuen App aber nicht mehr genutzt. Beim Umbau waren die bisherigen Raum- und Statistikeinträge leer und alle Verkaufszähler null; es mussten keine Bestandsdaten übernommen werden.
-
-Für ein konsistentes Podman-Backup die App beenden und dann beispielsweise:
-
-```bash
-mkdir -p backups
-podman stop juze-directus-v12
-podman volume export juze-directus-v12-database --output backups/database.tar
-podman volume export juze-directus-v12-uploads --output backups/uploads.tar
-podman start juze-directus-v12
-```
-
-Zusätzlich `.env.local` sicher aufbewahren. Backups enthalten personenbezogene Eintragungen. Container-Volumes nicht löschen; `docker compose down -v` entfernt die Daten. Die Directus-Version ist in `compose.yaml` und `scripts/podman.mjs` festgelegt; vor einem Versionswechsel Daten sichern und beide Stellen gemeinsam anpassen.
+Vor Änderungen den Stack stoppen und Datenbank, Uploads, `.env.server` sowie Caddy-Zertifikatsdaten geschützt sichern. Wiederherstellung und Wartung sind in [Serverbetrieb](docs/BETRIEB.md) beschrieben. Container-Volumes nicht löschen; `down -v` entfernt Daten.
 
 ## Prüfungen
 
 ```bash
 npm test
-DIRECTUS_INTEGRATION=1 node --env-file=.env.local --test tests/directus.test.mjs
+# Nur auf separater Testinstanz mit passend gesetzten Directus-Variablen:
+DIRECTUS_INTEGRATION=1 node --test tests/directus.test.mjs
 ```
 
 Die Integrationstests benötigen laufendes, eingerichtetes Directus. Sie prüfen echte CRUD-Vorgänge, Teamrechte, doppelte Verkäufe, doppelte Stimmen und QR-Codes. Testdaten und Testbenutzer werden anschließend gelöscht.

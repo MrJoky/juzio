@@ -5,7 +5,7 @@ import { setupProductPriceSync } from './product-price-sync.mjs';
 import { setupInsights } from './insights.mjs';
 import { findOrRename, setupBranding } from './branding.mjs';
 let token = process.env.DIRECTUS_ADMIN_TOKEN;
-if (!token || !process.env.PUBLIC_SERVICE_TOKEN) throw new Error('Bitte ./start.sh verwenden.');
+if (!token || !process.env.PUBLIC_SERVICE_TOKEN) throw new Error('Bitte ./start-server.sh verwenden.');
 const api = (url, method = 'GET', body) => directus(url, { token, method, body });
 let ready = false;
 for (let i = 0; i < 90; i++) {
@@ -38,7 +38,7 @@ const schemas = {
 };
 const existing = new Set((await api('/collections')).map(c => c.collection));
 for (const [collection, fields] of Object.entries(schemas)) {
-  if (!existing.has(collection)) await api('/collections', 'POST', { collection, meta: { icon: 'folder', note: 'JuZ.io · lokal' }, schema: {}, fields: [id, ...fields, created] });
+  if (!existing.has(collection)) await api('/collections', 'POST', { collection, meta: { icon: 'folder', note: 'JuZ.io' }, schema: {}, fields: [id, ...fields, created] });
   const present = new Set((await api(`/fields/${collection}`)).map(f => f.field));
   for (const f of [id, ...fields, created]) if (!present.has(f.field)) await api(`/fields/${collection}`, 'POST', f);
 }
@@ -96,7 +96,7 @@ if (!existing.has('rooms')) for (const name of ['Gaming', 'Chill', 'Mädchenraum
 if (!existing.has('products')) for (const [name, price_cents] of [['Wasser',100],['Snack',200],['Kaffee',150]]) await api('/items/products', 'POST', { name, price_cents, active: true });
 if (!existing.has('polls')) {
   const nextMonday = new Date(); nextMonday.setDate(nextMonday.getDate() + ((8 - nextMonday.getDay()) % 7 || 7));
-  const poll = await api('/items/polls', 'POST', { title: 'Was wünscht ihr euch nächste Woche?', description: 'Wähle dein Lieblingsangebot für die Theke. Eine Stimme pro Gerät.', week_of: nextMonday.toISOString().slice(0,10), active: true });
+  const poll = await api('/items/polls', 'POST', { title: 'Was wünscht ihr euch nächste Woche?', description: 'Wähle dein Lieblingsangebot für die Theke und frage das Team nach dem aktuellen Mitarbeitercode.', week_of: nextMonday.toISOString().slice(0,10), active: true });
   for (const name of ['Pizza-Toast', 'Obstbecher', 'Waffeln']) await api('/items/poll_options', 'POST', { poll: poll.id, name, active: true });
 }
 console.log('JuZ.io eingerichtet. Kollegen unter Benutzerverwaltung mit Rolle „JuZ.io Team“ anlegen.');

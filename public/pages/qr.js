@@ -13,13 +13,12 @@ export async function qrPage(app) {
     /* HTML */ `
       <div class="cms-note no-print">
         <p>
-          Wähle die Adresse des WLAN-Adapters. Für dauerhafte Ausdrucke
-          empfiehlt sich eine feste Laptop-IP im Router. Bei mehreren Adressen
-          kannst du PUBLIC_URL in .env.local setzen.
+          Die Codes führen zur festen Adresse der App. Ausdrucke nach einem
+          Adresswechsel erneuern.
         </p>
         <p>
-          Auch im gleichen WLAN muss der Router Verbindungen zwischen Geräten
-          erlauben. Der Laptop muss eingeschaltet bleiben.
+          Handys mit dem Haus-WLAN verbinden. Das WLAN muss den Zugriff auf den
+          Server erlauben.
         </p>
         <button id="print" class="primary-button">QR-Codes drucken</button>
       </div>
@@ -42,7 +41,7 @@ export async function qrPage(app) {
           )
           .join('') ||
         empty(
-          'Keine Netzwerkadresse gefunden. WLAN verbinden oder PUBLIC_URL in .env.local setzen.',
+          'Keine Links verfügbar. Bitte die Administration kontaktieren.',
         )}
       </div>
     `;

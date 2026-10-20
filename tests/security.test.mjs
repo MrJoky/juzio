@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { once } from 'node:events';
-import { createApp, trustedHost, localUrls } from '../server.js';
+import { createApp, trustedHost, publicUrls } from '../server.js';
 import { privacyPage } from '../public/pages/datenschutz.js';
 
 test('Hostprüfung blockiert fremde Domains und URL-Tricks',()=>{
@@ -41,5 +41,5 @@ test('API weist falsche Typen, Methoden, Herkunft und große Eingaben ab',async(
 });
 
 test('QR-Ziel akzeptiert keine Script-URL, Zugangsdaten oder fremden Pfad',()=>{
-  for(const url of ['javascript:alert(1)','http://user:pass@example.org','https://example.org/path'])assert.throws(()=>localUrls({},url),{status:503});
+  for(const url of ['javascript:alert(1)','http://user:pass@example.org','https://example.org/path'])assert.throws(()=>publicUrls(url),{status:503});
 });

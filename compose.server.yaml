@@ -1,0 +1,85 @@
+name: juzio-server
+x-app: &app
+  build:
+    context: .
+    dockerfile: Dockerfile.server
+  environment: &app-env
+    DIRECTUS_URL: http://directus:8055
+    PUBLIC_URL: ${PUBLIC_URL:?PUBLIC_URL fehlt}
+    DIRECTUS_PUBLIC_URL: ${DIRECTUS_PUBLIC_URL:?CMS-Adresse fehlt}
+    PUBLIC_SERVICE_TOKEN: ${PUBLIC_SERVICE_TOKEN:?Formularservice-Token fehlt}
+    APP_SECURE_COOKIES: "true"
+    TRUSTED_PROXY_IP: 172.30.56.2
+services:
+  directus:
+    image: directus/directus:12.5.0
+    restart: unless-stopped
+    volumes:
+      - directus_database:/directus/database
+      - directus_uploads:/directus/uploads
+    environment:
+      PUBLIC_URL: ${DIRECTUS_PUBLIC_URL:?CMS-Adresse fehlt}
+      SECRET: ${DIRECTUS_SECRET:?Directus-Secret fehlt}
+      ADMIN_EMAIL: ${DIRECTUS_ADMIN_EMAIL:?Admin-E-Mail fehlt}
+      ADMIN_PASSWORD: ${DIRECTUS_ADMIN_PASSWORD:?Admin-Passwort fehlt}
+      ADMIN_TOKEN: ${DIRECTUS_ADMIN_TOKEN:?Admin-Token fehlt}
+      DB_CLIENT: sqlite3
+      DB_FILENAME: /directus/database/data.db
+      WEBSOCKETS_ENABLED: "false"
+      TELEMETRY: "true"
+      PUBLIC_REGISTRATION: "false"
+      RATE_LIMITER_ENABLED: "true"
+      RATE_LIMITER_POINTS: "300"
+      RATE_LIMITER_DURATION: "60"
+      LOG_LEVEL: warn
+  setup:
+    <<: *app
+    restart: "no"
+    command: ["node", "scripts/setup.mjs"]
+    environment:
+      <<: *app-env
+      DIRECTUS_ADMIN_EMAIL: ${DIRECTUS_ADMIN_EMAIL}
+      DIRECTUS_ADMIN_PASSWORD: ${DIRECTUS_ADMIN_PASSWORD}
+      DIRECTUS_ADMIN_TOKEN: ${DIRECTUS_ADMIN_TOKEN}
+    depends_on:
+      directus:
+        condition: service_started
+  app:
+    <<: *app
+    restart: unless-stopped
+    init: true
+    depends_on:
+      setup:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 20s
+      start_period: 30s
+      retries: 3
+  proxy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      PUBLIC_URL: ${PUBLIC_URL}
+      DIRECTUS_PUBLIC_URL: ${DIRECTUS_PUBLIC_URL}
+    ports:
+      - "${SERVER_LAN_IP:?Hausnetz-IP des Servers fehlt}:80:80"
+      - "${SERVER_LAN_IP:?Hausnetz-IP des Servers fehlt}:443:443"
+    volumes:
+      - ./Caddyfile.server:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      default:
+        ipv4_address: 172.30.56.2
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: 172.30.56.0/24
+volumes:
+  directus_database:
+  directus_uploads:
+  caddy_data:
+  caddy_config:

@@ -1,6 +1,6 @@
 # Datenschutzorganisation und Datenverzeichnis
 
-Prüfstand: 9. Oktober 2026. Die technische Umsetzung ist eine Grundlage für den Betrieb, keine rechtliche Freigabe. Der konkrete Träger, sein Auftrag und seine verbindlichen Speicherfristen sind noch nicht bekannt. Die mitgelieferte öffentliche Erklärung ist deshalb ausdrücklich ein Entwurf.
+Der Träger legt fest, welche Daten für den Betrieb benötigt werden, wer darauf zugreifen darf und wann sie gelöscht werden. Die öffentliche Datenschutzseite wird im CMS gepflegt und vor der Nutzung an die tatsächlichen Abläufe angepasst.
 
 ## Welche Daten wo liegen
 
@@ -9,16 +9,16 @@ Prüfstand: 9. Oktober 2026. Die technische Umsetzung ist eine Grundlage für de
 | Raumliste | Vorname/Spitzname, weitere Gäste, Datum, Uhrzeit, Raum | Raumnutzung; Team und Admin |
 | Statistik | Datum, optionale Uhrzeit, Alter, Geschlecht, Anzahl, Notiz | Besuchszählung; Team und Admin |
 | Theke | Produkt, Menge, rückwirkend synchronisierter Warenpreis bzw. gebuchter Pfandbetrag, Zeitpunkt, buchende Mitarbeiter-ID, Wiederholungsschlüssel, Art der Position | Waren-, Pfand- und Rückzahlungsbuchung; Team und Admin |
-| Abstimmung | Poll, Auswahl, Zeitpunkt; bei älteren Stimmen ggf. nicht mehr genutzte Browser-/Netzwerkkennungen | Abstimmung mit kurzlebigen Einmalcodes; Team sieht Ergebnisse, App-Service darf Stimmen nicht lesen |
+| Abstimmung | Abstimmung, Auswahl und Zeitpunkt | Abstimmung mit kurzlebigen Einmalcodes; Team sieht Ergebnisse, App-Service darf Stimmen nicht lesen |
 | Teamkonto | E-Mail, Vorname, Passwort-Hash, Rolle, Directus-Sitzungen | Anmeldung und Berechtigungen; Admin und jeweiliges Konto |
 | Datenschutzhinweise | Freigegebener Text, Titel, Status, Änderungszeit | Information; öffentlich lesbar, Admin bearbeitet |
 | Betriebsdaten | Directus-Aktivitäten/Revisionen, möglicherweise IP und Änderungen; technische Logs | Administration; Admin/Systemverantwortliche |
 
-Geschäftsdaten liegen in Directus/SQLite in lokalen Container-Volumes. Exporte liegen zusätzlich im Downloadordner der verwendeten Geräte. Backups enthalten Datenbank, Benutzer, Geheimnisse und gegebenenfalls Änderungsverläufe. Pseudonyme Stimmen sind nicht als anonym anzusehen. Kleine Statistikgruppen und Notizen können Personenbezug herstellen. Es gibt keine automatische Verknüpfung zwischen Raumliste und Besucherstatistik.
+Geschäftsdaten liegen in Directus/SQLite in persistenten Container-Volumes auf dem selbst gehosteten Server. Exporte liegen zusätzlich im Downloadordner der verwendeten Geräte. Backups enthalten Datenbank, Benutzer, Geheimnisse und gegebenenfalls Änderungsverläufe. Pseudonyme Stimmen sind nicht als anonym anzusehen. Kleine Statistikgruppen und Notizen können Personenbezug herstellen. Es gibt keine automatische Verknüpfung zwischen Raumliste und Besucherstatistik.
 
 ## Browser und kurzfristige Daten
 
-Abstimmungen verwenden keine Cookies oder LocalStorage-Markierungen mehr. Früher gesetzte Werte werden nicht mehr ausgewertet und können im Browser verbleiben, bis sie ablaufen oder gelöscht werden. Neue Stimmen enthalten keine Browser- oder IP-Kennung.
+Abstimmungen verwenden keine Cookies oder LocalStorage-Markierungen. Stimmen enthalten keine Browser- oder IP-Kennung.
 
 | Speicherung | Dauer | Inhalt |
 | --- | --- | --- |
@@ -26,7 +26,9 @@ Abstimmungen verwenden keine Cookies oder LocalStorage-Markierungen mehr. Frühe
 | Anfragebegrenzung im App-RAM | etwa 1 Minute, Bereinigung alle 60 Sekunden | IP, Kategorie, Anzahl |
 | Mitarbeitercode im App-RAM | 10 Sekunden Gültigkeit; nach Ablauf erneuert, bis Bereinigung/Neustart ggf. im RAM | zufälliger Code je Poll; keine dauerhafte Speicherung |
 
-Cookies erhalten `Secure` nur bei `APP_SECURE_COOKIES=true`; das erfordert funktionierenden HTTPS-Zugang. Lokales HTTP schützt Übertragungen nicht vor Mitlesen. Die App lädt keine externen Fonts, Tracker oder CDNs. Die aktive Directus-Open-Innovation-Grant-Lizenz erfordert Lizenzprüfungen und Telemetrieverbindungen; `TELEMETRY=false` garantiert hier keine Abschaltung. Empfänger und Umfang sind vor Freigabe der Datenschutzhinweise zu prüfen. Paket- und Containerdownloads sowie die Entwicklung finden außerhalb dieses lokalen Datenflusses statt. Das Repository enthält Code, keine Geschäftsdaten.
+App und CMS werden über HTTPS im Hausnetz genutzt. Team-Sitzungen verwenden Secure-Cookies. Der HTTPS-Proxy verarbeitet Client-IP-Adressen; Zugriffslogs sind in der mitgelieferten Caddy-Konfiguration nicht aktiviert. Directus und das Betriebssystem können eigene technische Protokolle führen. Die App lädt keine externen Fonts, Tracker oder CDNs.
+
+Für den Directus Open Innovation Grant sind externe Lizenzprüfungen und Telemetrie erforderlich. Die tatsächlichen Empfänger und Datenflüsse sind bei der Beschreibung der Betriebsumgebung zu berücksichtigen. Informationen dazu enthält die [Directus-OIG-FAQ](https://directus.com/oig/faq).
 
 ## Vor der Freigabe durch den Träger
 

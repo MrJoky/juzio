@@ -5,7 +5,10 @@ import { once } from 'node:events';
 import { directus } from '../scripts/directus.mjs';
 import { createApp } from '../server.js';
 
-test('Directus: Teamlogin, Eintragung, Statistik, Verkauf, Abstimmung und Rechte', { skip: process.env.DIRECTUS_INTEGRATION !== '1' }, async()=>{
+test('Directus: Teamlogin, Eintragung, Statistik, Verkauf, Abstimmung und Rechte', { skip: process.env.DIRECTUS_INTEGRATION !== '1' }, async(t)=>{
+  const previousUrl = process.env.PUBLIC_URL;
+  process.env.PUBLIC_URL ||= 'https://juzio.test';
+  t.after(() => { if (previousUrl === undefined) delete process.env.PUBLIC_URL; else process.env.PUBLIC_URL = previousUrl; });
   const admin=(url,method='GET',body)=>directus(url,{token:process.env.DIRECTUS_ADMIN_TOKEN,method,body});
   const cleanup=[]; const password=randomBytes(24).toString('hex');const suffix=randomUUID();
   async function item(collection,body){const r=await admin('/items/'+collection,'POST',body);cleanup.push(()=>admin(`/items/${collection}/${r.id}`,'DELETE'));return r;}

@@ -1,103 +1,154 @@
-# Betrieb, Sicherung und Wartung
+# Server einrichten und betreiben
 
-## Voraussetzungen und Start
+## Hausnetz vorbereiten
 
-Node.js ab 22, npm und Docker Compose oder Podman installieren. Node und Container-Engine regelmäßig mit Sicherheitsupdates versorgen. Im Projektverzeichnis `./start.sh` ausführen. Das Skript erzeugt beim ersten Start `.env.local` mit zufälligen Geheimnissen und Dateirechten 0600, startet Directus, installiert festgelegte npm-Pakete und richtet das Schema ein. Bei bestehenden Daten bleiben Inhalte erhalten.
+JuZ.io läuft dauerhaft auf einem Linux-Server mit Docker Engine und Compose v2. Die App und das CMS (Directus zur Verwaltung der Inhalte) werden direkt im Browser geöffnet. Büro-PCs sind über das Hausnetz verbunden, Handys über das Haus-WLAN. Der Server läuft unabhängig davon, welche Geräte gerade eingeschaltet sind.
 
-Die App läuft standardmäßig auf `0.0.0.0:3000`, Directus nur auf `127.0.0.1:8056`. Das CMS ist also nur am Server erreichbar. Keine Router-Portfreigaben einrichten. Das WLAN muss Verbindungen zwischen Handy und Laptop zulassen. Firewall auf das benötigte Hausnetz begrenzen, Bildschirm sperren und nach Möglichkeit Festplattenverschlüsselung verwenden. Directus-Admins können alle Daten lesen; lokale Rechneradministratoren ebenfalls.
+Die Administration richtet eine feste Server-IP und zwei DNS-Namen im Hausnetz ein, beispielsweise:
 
-Seit 14. Oktober 2026 läuft **Directus 12.5.0 mit aktiver Open-Innovation-Grant-Lizenz**. Die Lizenz erfordert ausgehende Lizenz- und Telemetrieverbindungen. Die App bleibt für den lokalen Betrieb vorgesehen; eine Internetfreigabe erfolgt dadurch nicht.
+| Dienst | Beispieladresse |
+| --- | --- |
+| App und QR-Codes | `https://juzio.home.arpa` |
+| CMS für Mitarbeitende und Administration | `https://cms.juzio.home.arpa` |
 
-## Produktname und bestehende Installationen
+Beide Namen müssen von den Büro-PCs und im Haus-WLAN auf dieselbe Server-IP aufgelöst werden. WLAN-Isolation, getrennte Netzbereiche und Firewallregeln müssen den Zugriff auf den Server erlauben. Die Ports 80 und 443 werden an dessen Hausnetz-IP gebunden. Keine Router-Portfreigabe ins Internet einrichten. Der Server benötigt ausgehenden Internetzugang für Paketdownloads sowie Directus-Lizenzprüfung und Telemetrie.
 
-Das Produkt heißt **JuZ.io**, das npm-Paket `juzio`. Das Setup benennt die bisherigen Teamrollen, Policies, Standard-Dashboards und den Preis-Flow um und erhält dabei deren IDs und Rechte. Eigene Dashboardnamen bleiben erhalten. Der Directus-Projektname lautet ebenfalls JuZ.io.
+Docker beim Booten starten lassen. Die App, Directus und Caddy starten dann nach einem Serverneustart automatisch. Node.js und npm laufen im App-Container und müssen auf dem Server nicht separat installiert sein.
 
-Die internen Container-/Volumenamen `juze-directus*`, die Sitzungscookie-Kennung `juze_session` und bestehende Collection-Schlüssel `juze_*` bleiben aus Kompatibilitätsgründen erhalten. Ebenso bleibt der UUID-Namensraum der Dashboards unverändert; sonst würden neue Dashboards entstehen. Die Markenänderung ändert weder Geschäftsdaten noch die Lizenzbindung oder die lokale Serveradresse.
+## Konfiguration anlegen
 
-## Konfiguration
+Im Projektverzeichnis:
+
+```bash
+cp .env.server.example .env.server
+chmod 600 .env.server
+```
+
+In `.env.server` folgende Werte eintragen:
 
 | Variable | Bedeutung |
 | --- | --- |
-| `PORT`, `HOST` | App-Port und Bindeadresse; Standard 3000 / alle Interfaces |
-| `DIRECTUS_URL` | internes CMS-Ziel; Standard http://127.0.0.1:8056 |
-| `DIRECTUS_ADMIN_EMAIL`, `DIRECTUS_ADMIN_PASSWORD` | Erstadmin; Passwort später im CMS verwalten |
-| `DIRECTUS_ADMIN_TOKEN` | Setup-Schlüssel mit Adminrechten; ausschließlich serverseitig |
-| `DIRECTUS_SECRET` | Directus-Signierung; sicher aufbewahren |
-| `PUBLIC_SERVICE_TOKEN` | interner Formularservice; niemals an den Browser weitergeben |
-| `PUBLIC_URL` | App-Adresse für QR-Codes und zugelassener Host; HTTP(S)-Origin ohne Pfad/Benutzerdaten |
-| `APP_SECURE_COOKIES` | `true` nur bei geprüftem HTTPS-Zugang; dann Cookies nur verschlüsselt versenden |
+| `SERVER_LAN_IP` | Feste IPv4-Adresse des Servers im Hausnetz |
+| `PUBLIC_URL` | HTTPS-Adresse der App ohne weiteren Pfad |
+| `DIRECTUS_PUBLIC_URL` | Eigene HTTPS-Adresse des CMS ohne weiteren Pfad |
+| `DIRECTUS_ADMIN_EMAIL` | E-Mail-Adresse für den ersten Administrator |
+| `DIRECTUS_ADMIN_PASSWORD` | Passwort für dessen erste Anmeldung |
+| `DIRECTUS_ADMIN_TOKEN` | Schlüssel für die automatische Einrichtung |
+| `DIRECTUS_SECRET` | Signierungsschlüssel von Directus |
+| `PUBLIC_SERVICE_TOKEN` | Schlüssel für den internen Formularservice |
 
-`.env.local` nicht ins Repository oder ungeschützt in E-Mails kopieren. `npm start` und `npm run dev` verwenden jetzt dieselbe `.env.local` wie das Startskript. Die alte `.env` wird nicht verwendet. Die Geheimnisdatei selbst nicht in der App anzeigen. Bei Verlust aus geschützter Sicherung wiederherstellen; das bloße Erzeugen neuer Schlüssel kann Zugriffe und Stimmsperren ändern.
+App- und CMS-Adresse müssen verschieden sein. Für die vier Geheimnisse jeweils einen eigenen Wert mit `openssl rand -hex 32` erzeugen. Zugangsdaten geschützt aufbewahren; Zugriff auf Docker und Server-Backups erlaubt auch Zugriff auf diese Werte.
 
-## Stoppen
+## CMS zum ersten Mal öffnen
 
-App: Strg+C. Directus separat stoppen:
-
-```bash
-podman stop juze-directus-v12
-# oder bei Docker Compose:
-docker compose --env-file .env.local stop
-```
-
-Neustart der App erfordert erneute Team-Anmeldung. Die Datenbank liegt in Volumes. **Nicht `docker compose down -v` verwenden**: Das löscht Datenvolumes.
-
-## Backup und Wiederherstellung
-
-Vor Änderungen am CMS und jeder Migration eine konsistente Sicherung machen. App beenden, Directus stoppen und das Datenbank-Volume sowie Uploads exportieren. Unter Podman beispielsweise:
+Zunächst nur Directus und den HTTPS-Zugang starten:
 
 ```bash
-mkdir -p backups
-podman stop juze-directus-v12
-podman volume export juze-directus-v12-database --output backups/database.tar
-podman volume export juze-directus-v12-uploads --output backups/uploads.tar
-podman start juze-directus-v12
+docker compose -f compose.server.yaml --env-file .env.server up -d directus proxy
 ```
 
-Dateinamen vor neuen Sicherungen mit Datum versehen, damit bestehende Backups nicht überschrieben werden. Zusätzlich `.env.local` verschlüsselt sichern. Bei Docker die tatsächlichen Volumenamen mit `docker volume ls` bestimmen und nach dem Docker-Volume-Backupverfahren sichern; sie hängen vom Compose-Projektnamen ab.
+Der erste Start kann wegen des Containerdownloads etwas dauern. Das CMS ist anschließend unter der eingetragenen `DIRECTUS_PUBLIC_URL` erreichbar. Die App wird erst nach Lizenzaktivierung und Einrichtung gestartet.
 
-Eine Wiederherstellung zuerst auf einem getrennten Testsystem üben: neue Volumes anlegen, gesicherte Dateien importieren, dieselbe Directus-Version und geschützte Konfiguration verwenden, danach Teamlogin, Daten und Verkäufe prüfen. Produktive Daten nicht ungeprüft überschreiben. Vor Rückkehr in den Betrieb zwischenzeitliche Löschungen berücksichtigen. SQLite-Datenbank nicht im laufenden Schreibbetrieb einfach kopieren.
+### HTTPS im Hausnetz einrichten
 
-## Directus 12 und Lizenz
+Die mitgelieferte Konfiguration nutzt Caddys interne Zertifizierungsstelle. Dadurch ist kein öffentlich erreichbarer Server nötig. Damit Browser den Zertifikaten vertrauen, muss die Administration das öffentliche Stammzertifikat auf den verwendeten Büro-PCs und Handys als vertrauenswürdig einrichten. Eine WLAN-Verbindung allein installiert dieses Vertrauen nicht.
 
-Die produktive Instanz läuft seit 14. Oktober 2026 als `juze-directus-v12` unter **http://localhost:8056**. `./start.sh` startet diese Instanz und verbindet die App mit ihr. Die Volumes heißen `juze-directus-v12-database` und `juze-directus-v12-uploads`. Der frühere Container `juze-directus` bleibt gestoppt als Rückfallbestand erhalten und wird vom Startskript nicht gestartet.
-
-Vor der Übernahme wurden beide Instanzen konsistent unter `backups/directus-cutover-v12-1791972389937/` gesichert. Übernommen wurden der aktuelle Stand aller neun Fachsammlungen, die Aktivitäts-/Änderungshistorie und die bestehenden Benutzer einschließlich Passwort-Hashes. Rollen, Policies und Zugriffe waren identisch. Die lizenzierte v12-Projektkonfiguration blieb erhalten. Es gab keine hochgeladenen Dateien. Nach der Übernahme wurden Setup und Integrationstests ausgeführt.
-
-Die Lizenz wird unter **Einstellungen → Lizenz** verwaltet und bleibt in der Datenbank; kein Schlüssel liegt im Repository. Die Directus-`PUBLIC_URL` bleibt `http://localhost:8056`, damit die bestehende Lizenzbindung gültig bleibt. Für neue Container kann sie über `DIRECTUS_PUBLIC_URL` gesetzt werden; diese Variable betrifft Directus, während `PUBLIC_URL` die App-Adresse steuert. Ein Adresswechsel erfordert die geordnete Deaktivierung und erneute Aktivierung der Lizenz. Die Lizenz erfordert Telemetrie; `TELEMETRY=false` allein garantiert bei dieser Lizenz keine Abschaltung. Lizenzverlust kann Team- und Formularberechtigungen einschränken. Bei Problemen keine öffentlichen Rechte oder Adminrechte als Ersatz vergeben.
-
-Sicherung mit den aktuellen Volumes:
+Stammzertifikat auf dem Server exportieren:
 
 ```bash
-podman stop juze-directus-v12
-podman volume export juze-directus-v12-database --output backups/v12-database.tar
-podman volume export juze-directus-v12-uploads --output backups/v12-uploads.tar
-podman start juze-directus-v12
+docker compose -f compose.server.yaml --env-file .env.server cp proxy:/data/caddy/pki/authorities/local/root.crt /tmp/juzio-root.crt
 ```
 
-Vorher die App beenden und eindeutige Dateinamen verwenden. Für einen Rückfall den gesicherten v11-Bestand separat starten und die App-Verbindung ausdrücklich zurückstellen. Seit dem Wechsel neu entstandene Daten werden dabei nicht automatisch zurückübertragen. Keine v12-Datenbank mit v11 starten. Den lizenzierten Projektbestand nicht ohne Lizenzdeaktivierung löschen.
+Nur diese öffentliche Zertifikatsdatei über einen vertrauenswürdigen Weg an die Geräte verteilen. Die Installation hängt von Betriebssystem und Geräteverwaltung ab; bei iOS muss das Stammzertifikat zusätzlich ausdrücklich für SSL als vertrauenswürdig aktiviert werden. Zertifikatswarnungen vor dem Login beheben.
 
-Bei Docker Compose bleibt der Versionsvergleich als Schutz vor einer ungeprüften Migration erhalten. Ein alter Compose-Container wird nicht automatisch migriert. Podman legt bei erkanntem v11-Container ohne vorbereiteten v12-Container ebenfalls keinen leeren Ersatz an.
+Falls beliebige private Handys ohne Zertifikatsinstallation zugreifen sollen, muss die Haus-IT stattdessen öffentlich vertrauenswürdige Zertifikate für eigene Domainnamen bereitstellen, etwa über DNS-Validierung. Die interne Erreichbarkeit kann dabei erhalten bleiben. Dafür `tls internal` in beiden Blöcken von `Caddyfile.server` durch die zur vorhandenen Zertifikatsverwaltung passende Konfiguration ersetzen; der unveränderte Standard übernimmt das nicht. [Caddy: TLS-Konfiguration](https://caddyserver.com/docs/caddyfile/directives/tls).
 
-## Prüfungen
+### Als Administrator anmelden
+
+1. Am Büro-PC die konfigurierte CMS-Adresse öffnen, beispielsweise `https://cms.juzio.home.arpa`.
+2. Mit `DIRECTUS_ADMIN_EMAIL` und `DIRECTUS_ADMIN_PASSWORD` aus `.env.server` anmelden. Diese Angaben legen den ersten Admin bei einer leeren Datenbank an.
+3. Im eigenen Profil Zwei-Faktor-Anmeldung einrichten und Wiederherstellungsinformationen geschützt ablegen.
+4. Die Lizenz wie im nächsten Abschnitt aktivieren. Sammlungen und Teamrolle werden anschließend automatisch angelegt.
+
+Ein später geändertes Admin-Passwort wird in Directus verwaltet. Das Ändern der Konfigurationsdatei allein setzt kein bestehendes Passwort zurück.
+
+## Kostenlose Directus-Lizenz beantragen und aktivieren
+
+Für die in JuZ.io verwendeten eigenen Zugriffsregeln ist eine passende Directus-Lizenz erforderlich. Der kostenlose **Open Innovation Grant (OIG)** stellt diese Funktionen für berechtigte Organisationen bereit. Der kostenlose Core-Tarif ist funktional begrenzt. [Directus: Lizenzübersicht](https://directus.com/docs/licensing/overview).
+
+1. Den Antrag auf [directus.com/oig](https://directus.com/oig) öffnen.
+2. Den tatsächlichen Betreiber angeben, der das CMS nutzt, und dessen Organisations- und Kontaktdaten eintragen.
+3. Voraussetzungen und Bedingungen prüfen und den Antrag absenden. Laut [OIG-FAQ](https://directus.com/oig/faq) gelten für gemeinnützige Organisationen weniger als 50 Beschäftigte und weniger als 5 Millionen US-Dollar jährliche Umsätze; unbezahlte Ehrenamtliche zählen dabei nicht als Beschäftigte. Für öffentliche Träger gilt der Grant laut FAQ nicht. Bei unklarer Trägerschaft oder Berechtigung direkt bei Directus nachfragen.
+4. Den erhaltenen Lizenzschlüssel im CMS unter **Einstellungen → Lizenz** eintragen und aktivieren.
+5. Auf derselben Seite den aktiven Status und die freigeschalteten Funktionen prüfen.
+
+Der Grant verlangt Telemetrie und ausgehenden Internetzugang. Er ist kein vollständig offline nutzbarer Tarif. Die jeweils aktuellen Bedingungen stehen in der [OIG-FAQ](https://directus.com/oig/faq).
+
+Die Aktivierung ist an Datenbank und CMS-Adresse gebunden. `DIRECTUS_PUBLIC_URL` deshalb vorab festlegen. Bei einem späteren Adresswechsel zuerst die Lizenz unter der bisherigen Adresse deaktivieren, dann die Adresse ändern, Directus neu starten und die Lizenz erneut aktivieren. [Directus: Lizenzverwaltung und Adresswechsel](https://directus.com/docs/licensing/overview#moving-an-instance-to-a-new-url).
+
+## JuZ.io einrichten und Inhalte vorbereiten
+
+Nach erfolgreicher Lizenzaktivierung:
 
 ```bash
-npm test
-DIRECTUS_INTEGRATION=1 node --env-file=.env.local --test
-npm audit
+./start-server.sh
+docker compose -f compose.server.yaml --env-file .env.server ps -a
 ```
 
-Integrationstests erstellen Testkonten und Datensätze und entfernen sie anschließend. Nicht parallel mit einer Datenbereinigung laufen lassen. Sie benötigen ein eingerichtetes, erreichbares CMS und `.env.local`. `npm audit` prüft nur die npm-Abhängigkeiten der App, nicht alle Containerpakete, Systempakete oder künftigen Schwachstellen.
+Das Setup legt Sammlungen, Rollen, Berechtigungen, Auswertungen und Beispielinhalte an. Der Setup-Container muss mit Exitcode 0 enden; danach startet die App. Bei Fehlern die Meldungen prüfen:
 
-## Häufige Probleme
+```bash
+docker compose -f compose.server.yaml --env-file .env.server logs --tail=100 setup directus app proxy
+```
 
-- **Port bereits belegt / address already in use:** Die App läuft möglicherweise bereits. `http://localhost:3000` öffnen oder die laufende Instanz mit Strg+C in ihrem Terminal beenden und anschließend `./start.sh` erneut ausführen. Bei abweichendem `PORT` die konfigurierte Portnummer verwenden.
-- **Handy erreicht die App nicht:** WLAN, Server-IP, Firewall, Port 3000 und Router-Isolation prüfen. Bei neuer IP QR-Codes neu drucken.
-- **Serveradresse nicht freigegeben:** tatsächliche Adresse in `PUBLIC_URL` setzen; DNS-Aliasse werden nicht automatisch akzeptiert.
-- **Login funktioniert nicht:** Konto aktiv, Rolle JuZ.io Team, richtiges Passwort/OTP; `.env.local` und CMS prüfen. Ein Rollenwechsel oder entzogenes Statistik-Leserecht beendet auch die App-Sitzung.
-- **Cookies fehlen:** Bei lokalem HTTP `APP_SECURE_COOKIES=false`; im Browser Cookies zulassen. Für HTTPS eine geprüfte Konfiguration verwenden.
-- **Directus nicht erreichbar:** Containerstatus und lokale Portbindung prüfen. Logs nur intern ansehen; sie können technische Daten enthalten.
-- **Abstimmung mehrfach/gar nicht möglich:** Öffnungszeit, aktives Angebot und aktuellen Mitarbeitercode prüfen. Ein Code gilt zehn Sekunden und einmal; Browser und IP sperren keine weiteren Stimmen mit neuen Codes.
+Dann im CMS:
 
-## Grenzen
+1. **Benutzerverwaltung:** Für jede Mitarbeiterperson ein eigenes Konto mit E-Mail-Adresse, Passwort, Status **Aktiv** und Rolle **JuZ.io Team** anlegen. Nur Personen, die administrieren sollen, erhalten Adminrechte. Ohne konfigurierten Mailversand Konten direkt mit Passwort anlegen und die Zugangsdaten persönlich übergeben.
+2. **Räume (`rooms`):** Beispielräume an die tatsächlichen Räume anpassen und nur nutzbare Räume aktivieren.
+3. **Produkte (`products`):** Beispielprodukte prüfen, Namen und Preise in Cent eintragen und gegebenenfalls Pfand konfigurieren. Achtung: Warenpreisänderungen aktualisieren auch frühere Warenbuchungen dieses Produkts.
+4. **Abstimmungen (`polls`, `poll_options`):** Beispielabstimmung deaktivieren oder anpassen und die gewünschten Angebote zuordnen.
+5. **Datenschutzhinweise (`privacy_pages`):** Den Eintrag `datenschutz` vervollständigen und nach Prüfung auf **Veröffentlicht** setzen.
+6. Die App am Büro-PC öffnen, mit einem Teamkonto anmelden und Raumliste, Statistik, Theke und Abstimmung prüfen. Das CMS ebenfalls mit dem Teamkonto öffnen und die Dashboards prüfen.
+7. Mit einem Handy im Haus-WLAN die öffentlichen Formulare testen und erst danach unter **QR-Codes** die Ausdrucke erstellen.
 
-Ein einzelner lokaler App-Prozess ist vorgesehen. Mehrere App-Prozesse teilen weder Team-Sitzungen noch Mitarbeitercodes oder die Sperre paralleler Statistikänderungen. Kein Internetbetrieb ohne separate HTTPS-, Proxy-, Firewall- und Datenschutzplanung. Durch einen unverschlüsselten Proxy werden Geräte-IP und allgemeine Anfragelimits anders bewertet; Weiterleitungsheader werden absichtlich nicht vertraut.
+Das Setup erhält eigene Inhalte und ergänzt fehlende Strukturen. Die Administration muss den Server nicht täglich neu starten. Mitarbeitende öffnen App oder CMS direkt an ihrem jeweiligen Gerät.
+
+## Laufender Betrieb
+
+```bash
+# App neu starten
+docker compose -f compose.server.yaml --env-file .env.server restart app
+
+# Alle Dienste stoppen
+docker compose -f compose.server.yaml --env-file .env.server stop
+
+# Starten oder geänderte Konfiguration übernehmen
+./start-server.sh
+```
+
+Ein App-Neustart beendet Team-Sitzungen und verwirft Mitarbeitercodes; gespeicherte Geschäftsdaten bleiben erhalten. `restart` allein übernimmt keine geänderten Umgebungsvariablen. Nach Konfigurationsänderungen das Startskript verwenden.
+
+Vor Updates eine Sicherung erstellen und die Kompatibilität prüfen. Directus ist auf Version 12.5.0 festgelegt. Node- und Caddy-Images regelmäßig geplant aktualisieren und die verwendeten Image-Versionen beziehungsweise Digests für eine Wiederherstellung festhalten.
+
+## Sicherung und Wiederherstellung
+
+Vor einer Sicherung den gesamten Stack stoppen, damit Datenbank und Uploads konsistent sind. Folgende Bestände geschützt sichern:
+
+- `juzio-server_directus_database`: Datenbank einschließlich Konten, Inhalten und CMS-Konfiguration.
+- `juzio-server_directus_uploads`: Hochgeladene Dateien.
+- `juzio-server_caddy_data` und `juzio-server_caddy_config`: Zertifikate und Proxy-Konfiguration. Die Caddy-Daten enthalten auch private Schlüssel der internen Zertifizierungsstelle.
+- `.env.server`, Deploymentdateien und die verwendeten Image-Versionen.
+
+Die Volume-Pfade lassen sich mit `docker volume inspect <Volumename>` ermitteln. Bei gestoppten Diensten mit Host-Administrationsrechten vollständig und unter Erhalt der Besitzrechte sichern. Datierte Backups verschlüsselt außerhalb des Servers aufbewahren. Danach mit `./start-server.sh` weiterarbeiten. **Nicht `down -v` verwenden:** Dieser Befehl löscht die Datenvolumes.
+
+Eine Wiederherstellung auf einem getrennten Testsystem üben: Zielvolumes anlegen, Sicherungen bei gestoppten Diensten importieren und mit gleicher Directus-Version sowie passenden Geheimnissen starten. Inhalte, Login, Berechtigungen und Buchungen prüfen. Bei einer Wiederherstellung bereits umgesetzte Löschungen berücksichtigen.
+
+## Technischer Aufbau und Grenzen
+
+`compose.server.yaml` betreibt Directus, Setup, App und Caddy als Projekt `juzio-server`. `app.server.js` startet die App; `server.js` enthält die gemeinsamen Fachfunktionen. Der App-Port und Directus-Port werden nicht direkt am Host veröffentlicht. Caddy stellt beide HTTPS-Adressen bereit.
+
+Der Container-Adressbereich `172.30.56.0/24` darf sich nicht mit bestehenden Netzen überschneiden. Bei Änderungen die feste Proxy-IP und `TRUSTED_PROXY_IP` gemeinsam anpassen. Die App vertraut der von Caddy gesetzten Client-IP nur für diesen Proxy. HTTPS und Secure-Cookies sind für die App erforderlich.
+
+Genau eine App- und eine Directus-Instanz betreiben. Sitzungen, Mitarbeitercodes, Anfragelimits und Statistik-Sperren liegen im Arbeitsspeicher. Mehrere Replikate benötigen eine gesonderte Implementierung. SQLite verwendet persistenten lokalen Speicher des Servers. Der Healthcheck `/api/health` prüft die Verbindung zu Directus; Docker startet einen lediglich als ungesund markierten Container nicht automatisch neu.
+
+Die Tests lassen sich mit `npm ci` und `npm test` auf einem Entwicklungs- oder Testsystem ausführen. Directus-Integrationstests nur gegen eine getrennte eingerichtete Testinstanz ausführen. Zur Betriebsprüfung gehören außerdem ein Serverneustart, Zugriff von Büro-PC und Handy sowie ein geübter Backup-Restore.

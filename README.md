@@ -2,6 +2,14 @@
 
 **Mehr Zeit für Jugendarbeit.**
 
+## Urheberrecht und Nutzungsrechte
+
+**Copyright © 2026 Timo Dahlenburg und die jeweiligen weiteren Rechteinhaber. Alle Rechte vorbehalten.**
+
+Der öffentlich einsehbare Quellcode ist **nicht unter einer Open-Source-Lizenz** freigegeben. Die Übernahme, Bearbeitung, Weiterveröffentlichung oder kommerzielle Verwertung geschützter Projektbestandteile erfordert die vorherige ausdrückliche schriftliche Zustimmung der jeweiligen Rechteinhaber. Eine Quellenangabe allein genügt nicht. Gesetzliche Erlaubnisse, Rechte aus den Bedingungen der Hosting-Plattform und die Lizenzen von Drittbestandteilen bleiben unberührt. Einzelheiten und Kontakt: [Rechtevorbehalt](LICENSE).
+
+Der Rechtevorbehalt betrifft die konkrete geschützte Umsetzung. Abstrakte Ideen und allgemeine Konzepte werden dadurch nicht exklusiv geschützt.
+
 Raumeintragung, Besucherstatistik, Thekenverkauf und Angebotsabstimmung mit lokalem Directus-CMS. Der Laptop ist der Server; Handys greifen im Haus-WLAN darauf zu. Die Geschäftsdaten liegen lokal. Die aktivierte Directus-Lizenz benötigt externe Lizenz- und Telemetrieverbindungen.
 
 ## Dokumentation

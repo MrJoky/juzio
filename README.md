@@ -14,6 +14,7 @@ Raumeintragung, Besucherstatistik, Thekenverkauf und Angebotsabstimmung mit loka
 
 ## Dokumentation
 
+- [Installer-Testumgebungen](docs/TESTUMGEBUNG.md): isolierte Directus-Sandbox und Tests für Linux, Windows und macOS.
 - [Seitentexte und Frontend-Code](docs/FRONTEND.md): welche Seite in welcher Datei liegt und wo gemeinsame Bausteine bearbeitet werden.
 - [Bedienung aller Bereiche](docs/BEDIENUNG.md): Raumliste, Statistik, Verkauf/Pfand, Abstimmung, QR-Codes und Datenschutzseite.
 - [Betrieb und Wartung](docs/BETRIEB.md): Installation, Konfiguration, Backups und spätere Migration.
@@ -128,16 +129,17 @@ podman volume export juze-directus-v12-uploads --output backups/uploads.tar
 podman start juze-directus-v12
 ```
 
-Zusätzlich `.env.local` sicher aufbewahren. Backups enthalten personenbezogene Eintragungen. Container-Volumes nicht löschen; `docker compose down -v` entfernt die Daten. Die Directus-Version ist in `compose.yaml` und `scripts/podman.mjs` festgelegt; vor einem Versionswechsel Daten sichern und beide Stellen gemeinsam anpassen.
+Zusätzlich `.env.local` sicher aufbewahren. Backups enthalten personenbezogene Eintragungen. Container-Volumes nicht löschen; `docker compose down -v` entfernt die Daten. Die Directus-Version ist in `compose.yaml`, `scripts/podman.mjs` und für die Tests in `test-environment/sandbox.mjs` festgelegt; vor einem Versionswechsel Daten sichern und alle drei Stellen gemeinsam anpassen.
 
 ## Prüfungen
 
 ```bash
 npm test
-DIRECTUS_INTEGRATION=1 node --env-file=.env.local --test tests/directus.test.mjs
+npm run test:installer
+npm run test:sandbox
 ```
 
-Die Integrationstests benötigen laufendes, eingerichtetes Directus. Sie prüfen echte CRUD-Vorgänge, Teamrechte, doppelte Verkäufe, doppelte Stimmen und QR-Codes. Testdaten und Testbenutzer werden anschließend gelöscht.
+Die normalen Tests übernehmen keine produktiven Directus-Zugangsdaten. Die Sandbox prüft ein frisches Directus ohne Hostports und entfernt ihre Testdaten anschließend vollständig. Details und Grenzen der Betriebssystem- und Lizenzprüfungen: [Testumgebungen](docs/TESTUMGEBUNG.md). Tests für vollständige App-/Teamrechte benötigen ein separat eingerichtetes, passend lizenziertes Test-CMS; Aufruf siehe [Betrieb](docs/BETRIEB.md#prüfungen).
 
 Technischer Aufbau: Node.js als Webserver und API, Directus mit SQLite als CMS. Persönliche Directus-Tokens bleiben auf dem Server; der Browser erhält eine HttpOnly-Sitzung. Der Formularservice hat nur Lesezugriff auf aktive Räume und Abstimmungen sowie Schreibzugriff auf Raumeintragungen und Stimmen. Der Formularservice kann gespeicherte Stimmen nicht lesen. Die öffentliche Directus-Rolle hat keine Datenrechte. Servervalidierung, Anfragelimits und Herkunftsprüfung schützen die Schreibendpunkte.
 
